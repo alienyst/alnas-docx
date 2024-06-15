@@ -9,12 +9,17 @@
     """,
 
     'author': "Ali Ns",
+
     'website': "https://www.linkedin.com/in/panggilsajaali",
+    
+    'images': ["static/description/banner.png"],
 
     'category': 'Technical',
+    
     'version': '1.0',
         
     'application': True,
+    
     'installable': True,
 
     'depends': ['base', 'mail'],

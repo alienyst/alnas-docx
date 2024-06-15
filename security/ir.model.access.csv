@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+alnas_docx.access_docx_report_config,access_docx_report_config,alnas_docx.model_docx_report_config,base.group_user,1,1,1,1

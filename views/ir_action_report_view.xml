@@ -1,0 +1,14 @@
+<odoo>
+    <record id="view_report_action_form_inherit" model="ir.ui.view">
+        <field name="name">ir.actions.report.form.inherit</field>
+        <field name="model">ir.actions.report</field>
+        <field name="inherit_id" ref="base.act_report_xml_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='report_type']" position="after">
+                <field name="docx_merge_mode" attrs="{'invisible': [('report_type', '!=', 'docx')]}"/>
+                <field name="report_docx_template" filename="report_docx_template_name" attrs="{'invisible': [('report_type', '!=', 'docx')]}"/>
+                <field name="report_docx_template_name" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

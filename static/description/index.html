@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Docx Report Generator</title>
+</head>
+
+<body>
+    <h2>Docx Report Generator</h2>
+    <p>The Docx Report Generator is a module that helps you create reports using only a .docx template and Jinja syntax.
+    </p>
+
+    <p>This module is inspired from <a href="https://apps.odoo.com/apps/modules/16.0/report_xlsx">Report Xlsx</a>.</p>
+
+    <h3>Prerequisites</h3>
+    <p>Before installing this module, make sure to install the following libraries:</p>
+    <ul>
+        <li><code>pip install docxtpl docxcompose html2docx num2words Babel</code></li>
+    </ul>
+
+    <h3>Usage</h3>
+    <p>For usage instructions, you can refer to the following video:</p>
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/dZvak8yiD5Q?si=BArrT3n33ZDkkhKm" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    <p>Documentation on writing syntax in the document: <a
+        href="https://docxtpl.readthedocs.io/en/stable/">https://docxtpl.readthedocs.io/en/stable/</a></p>
+
+    <h3>Field Naming Convention</h3>
+    <p>To call and write the field name, use the following format: <code>{{docs.field_name}}</code>, starting with the word "docs".</p>
+
+    <h4>Useful Functions (Indonesian Language)</h4>
+        <ul>
+        <li><code>{{spelled_out(docs.numeric_field)}}</code>: Spell out numbers</li>
+        <li><code>{{formatdate(docs.date_field)}}</code>: Format dates</li>
+        <li><code>{{parsehtml(docs.html_field)}}</code>: Parse HTML fields</li>
+        </ul>
+        <p>Note: The functions will be updated as needed.</p>
+    
+    <h3>Feedback</h3>
+    <p>We welcome any feedback and suggestions, especially for improving this module. Thank you!</p>
+
+</body>
+
+</html>

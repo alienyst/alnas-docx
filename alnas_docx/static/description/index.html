@@ -20,21 +20,22 @@
     </ul>
 
     <h3>Usage</h3>
-    <p>For usage instructions, you can refer to the following video: <a href="https://www.youtube.com/embed/dZvak8yiD5Q?si=BArrT3n33ZDkkhKm">Link</a></p>
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/dZvak8yiD5Q?si=BArrT3n33ZDkkhKm" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    <p>For usage instructions, you can refer to the following video: <a href="https://www.youtube.com/watch?v=dZvak8yiD5Q">Link</a></p>
+    <img src="assets/preview.gif" alt="Video Preview">
     <p>Documentation on writing syntax in the document: <a
         href="https://docxtpl.readthedocs.io/en/stable/">https://docxtpl.readthedocs.io/en/stable/</a></p>
 
     <h3>Field Naming Convention</h3>
     <p>To call and write the field name, use the following format: <code>{{docs.field_name}}</code>, starting with the word "docs".</p>
 
-    <h4>Useful Functions (Indonesian Language)</h4>
+    <h4>Useful Functions (Indonesian Language as default)</h4>
         <ul>
         <li><code>{{spelled_out(docs.numeric_field)}}</code>: Spell out numbers</li>
         <li><code>{{formatdate(docs.date_field)}}</code>: Format dates</li>
         <li><code>{{parsehtml(docs.html_field)}}</code>: Parse HTML fields</li>
         </ul>
         <p>Note: The functions will be updated as needed.</p>
+        <p>lang default is lang='id_ID' change if need, example = {{spelled_out(docs.numeric_field, lang='en_US')}}</p>
     
     <h3>Feedback</h3>
     <p>We welcome any feedback and suggestions, especially for improving this module. Thank you!</p>

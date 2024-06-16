@@ -1,0 +1,5 @@
+docxtpl
+docxcompose
+html2docx
+num2words
+Babel

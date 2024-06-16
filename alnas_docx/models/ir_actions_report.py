@@ -12,8 +12,6 @@ from odoo import _, api, fields, models
 from odoo.tools.safe_eval import safe_eval, time
 from odoo.exceptions import ValidationError
 
-import logging
-_logger = logging.getLogger(__name__)
 
 
 class IrActionsReport(models.Model):
@@ -47,9 +45,13 @@ class IrActionsReport(models.Model):
             'spelled_out': self._spelled_out,
             'parsehtml': self._parse_html,
             'formatdate': self._formatdate,
+            'company': self.env.company,
+            'lang' : self._context.get('lang', 'id_ID')
         }
         
-        data.update({'report_name': report.print_report_name})
+        data.update({
+            'report_name': report.print_report_name
+            })
         
         if report.docx_merge_mode == 'composer':
             return self._render_composer_mode(doc_template, doc_obj, data, context)
@@ -124,7 +126,6 @@ class IrActionsReport(models.Model):
     def _convert_docx_to_pdf(self, docx_stream):
         raise NotImplementedError("This method is not implemented yet.")
     
-    
     # Render Function
     @staticmethod
     def _parse_html(html):
@@ -132,9 +133,9 @@ class IrActionsReport(models.Model):
         return buf.getvalue()
     
     @staticmethod
-    def _formatdate(date_required=fields.Datetime.today(), format='full'):
-        return format_date(date_required, format=format, locale='id_ID')
+    def _formatdate(date_required=fields.Datetime.today(), format='full', lang='id_ID'):
+        return format_date(date_required, format=format, locale=lang)
     
     @staticmethod
-    def _spelled_out(number):
-        return num2words(number, lang='id_ID')
+    def _spelled_out(number, lang='id_ID'):
+        return num2words(number, lang=lang)

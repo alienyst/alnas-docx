@@ -2,7 +2,7 @@
 
 The Docx Report Generator is a module that helps you create reports using only a .docx template and Jinja syntax.
 
-This module is inspired by [Report Xlsx](https://apps.odoo.com/apps/modules/16.0/report_xlsx).
+This module is inspired from [Report Xlsx](https://apps.odoo.com/apps/modules/16.0/report_xlsx).
 
 ## Prerequisites
 
@@ -33,9 +33,3 @@ Note: The functions will be updated as needed.
 ## Feedback
 
 We welcome any feedback and suggestions, especially for improving this module. Thank you!
-
-
-
-**Contact***
-
-[Linkedin](https://www.linkedin.com/in/panggilsajaali)

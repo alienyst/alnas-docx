@@ -10,7 +10,7 @@
 
     'author': "Ali Ns",
 
-    'website': "https://www.linkedin.com/in/panggilsajaali",
+    'website': "https://github.com/alienyst",
     
     'images': ["static/description/banner.png"],
 

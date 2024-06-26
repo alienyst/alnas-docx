@@ -49,14 +49,10 @@ class IrActionsReport(models.Model):
             'lang' : self._context.get('lang', 'id_ID')
         }
         
-        data.update({
-            'report_name': report.print_report_name
-            })
-        
         if report.docx_merge_mode == 'composer':
             return self._render_composer_mode(doc_template, doc_obj, data, context)
         elif report.docx_merge_mode == 'zip':
-            return self._render_zip_mode(doc_template, doc_obj, data, context)
+            return self._render_zip_mode(doc_template, doc_obj, data, context, report_name=report.print_report_name)
         else:
             return self._render_docx_to_pdf_mode(doc_template, doc_obj, data, context)
         
@@ -92,7 +88,7 @@ class IrActionsReport(models.Model):
 
         return temp_output.read()
 
-    def _render_zip_mode(self, doc_template, doc_obj, data, context):
+    def _render_zip_mode(self, doc_template, doc_obj, data, context, report_name='report'):
         docx_files = []
 
         for obj in doc_obj:
@@ -111,7 +107,7 @@ class IrActionsReport(models.Model):
         zip_buffer = BytesIO()
         with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
             for idx, docx_file in enumerate(docx_files):
-                name = safe_eval(data['report_name'], {"object": doc_obj[idx], "time": time})
+                name = safe_eval(report_name, {"object": doc_obj[idx], "time": time})
                 filename = "%s.%s" % (name, "docx")
                 zip_file.writestr(filename, docx_file)
 

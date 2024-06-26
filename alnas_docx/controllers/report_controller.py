@@ -74,7 +74,7 @@ class DocxReportController(ReportController):
                         )
                         context = json.dumps({**context, **data_context})
                     response = self.report_routes(
-                        reportname, converter="docx", context=context, **data
+                        reportname, docids=docids, converter="docx", context=context, **data
                     )
 
                 report = request.env["ir.actions.report"]._get_report_from_name(

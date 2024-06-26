@@ -51,7 +51,7 @@ class DocxReportConfig(models.Model):
             if not rec.report_docx_template_filename.endswith('.docx'):
                 raise UserError('Please upload a DOCX template.')
     
-    def action_publish(self):
+    def _action_publish(self):
         for record in self:
             if record.state == 'draft':
                 if not record.action_report_id:                
@@ -81,22 +81,26 @@ class DocxReportConfig(models.Model):
                 action_report.create_action()
                 record.action_report_id = action_report
                 record.state = 'published'
-                
-                return self._refresh_page()
-                
             else:
                 raise UserError('Report already published')
-            
-    def action_unpublish(self):
+        return True
+    
+    def action_publish(self):
+        self._action_publish()
+        return self._refresh_page()
+    
+    def _action_unpublish(self):
         for record in self:
             if record.state == 'published':
                 record.action_report_id.unlink_action()
                 record.state = 'draft'
-                
-                return self._refresh_page()
-                
             else:
                 raise UserError('Report already unpublished')
+        return True
+    
+    def action_unpublish(self):
+        self._action_unpublish()
+        return self._refresh_page()
             
     @api.ondelete(at_uninstall=False)
     def _unlink_docx_report(self):

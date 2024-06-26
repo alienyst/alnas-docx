@@ -4,7 +4,7 @@ import zipfile
 from docxtpl import DocxTemplate
 from docxcompose.composer import Composer
 from docx import Document
-from html2docx import html2docx
+from html2text import HTML2Text
 from num2words import num2words
 from babel.dates import format_date
 
@@ -125,8 +125,8 @@ class IrActionsReport(models.Model):
     # Render Function
     @staticmethod
     def _parse_html(html):
-        buf = html2docx(html)
-        return buf.getvalue()
+        text = HTML2Text()
+        return text.handle(html)
     
     @staticmethod
     def _formatdate(date_required=fields.Datetime.today(), format='full', lang='id_ID'):

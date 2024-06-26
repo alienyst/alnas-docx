@@ -1,5 +1,5 @@
 docxtpl
 docxcompose
-html2docx
+html2text
 num2words
 Babel

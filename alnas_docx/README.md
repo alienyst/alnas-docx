@@ -8,7 +8,7 @@ This module inspired from [Report Xlsx](https://apps.odoo.com/apps/modules/16.0/
 
 Before installing this module, make sure to install the following libraries:
 
-- `pip install docxtpl docxcompose html2docx num2words Babel`
+- `pip install docxtpl docxcompose html2text num2words Babel`
 
 ## Usage
 

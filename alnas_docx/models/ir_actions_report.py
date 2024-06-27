@@ -4,9 +4,10 @@ import zipfile
 from docxtpl import DocxTemplate
 from docxcompose.composer import Composer
 from docx import Document
-from html2text import HTML2Text
+from bs4 import BeautifulSoup
 from num2words import num2words
 from babel.dates import format_date
+from htmldocx import HtmlToDocx
 
 from odoo import _, api, fields, models
 from odoo.tools.safe_eval import safe_eval, time
@@ -59,18 +60,29 @@ class IrActionsReport(models.Model):
     def _render_composer_mode(self, doc_template, doc_obj, data, context):
         master_doc = Document()
         composer = Composer(master_doc)
-
+        
         for idx, obj in enumerate(doc_obj):
             context = {
                 **context,
                 'docs': obj,
-                'data': data
+                'data': data,
+                'html' : {},
             }
+            
+            for field in obj._fields:
+                value = getattr(obj, field)
+                if isinstance(value, str) and self.is_html(value):
+                    subdoc_stream  = self.render_html_as_subdoc(value)
+                    sub_doc = doc_template.new_subdoc(subdoc_stream)
+                    context['html'][field] = sub_doc
+                else:
+                    context['html'][field] = ''
+                
             temp = BytesIO()
             doc_template.render(context)
             doc_template.save(temp)
             temp.seek(0)
-
+            
             if len(doc_obj) == 1:
                 return temp.read()
             else:
@@ -95,8 +107,18 @@ class IrActionsReport(models.Model):
             context = {
                 **context,
                 'docs': obj,
-                'data': data
+                'data': data,
+                'html' : {},
             }
+            
+            for field in obj._fields:
+                value = getattr(obj, field)
+                if isinstance(value, str) and self.is_html(value):
+                    subdoc_stream  = self.render_html_as_subdoc(value)
+                    sub_doc = doc_template.new_subdoc(subdoc_stream)
+                    context['html'][field] = sub_doc
+                else:
+                    context['html'][field] = ''
             
             temp = BytesIO()
             doc_template.render(context)
@@ -125,8 +147,10 @@ class IrActionsReport(models.Model):
     # Render Function
     @staticmethod
     def _parse_html(html):
-        text = HTML2Text()
-        return text.handle(html)
+        if not html:
+            return ''
+        soup = BeautifulSoup(html, 'html.parser')
+        return soup.get_text()
     
     @staticmethod
     def _formatdate(date_required=fields.Datetime.today(), format='full', lang='id_ID'):
@@ -135,3 +159,15 @@ class IrActionsReport(models.Model):
     @staticmethod
     def _spelled_out(number, lang='id_ID'):
         return num2words(number, lang=lang)
+    
+    def render_html_as_subdoc(self, html_code):
+        temp = BytesIO()
+        desc_document = Document()
+        new_parser = HtmlToDocx()
+        new_parser.add_html_to_document(html_code, desc_document)
+        desc_document.save(temp)
+        temp.seek(0)
+        return temp
+    
+    def is_html(self, text):
+        return bool(BeautifulSoup(text, "html.parser").find())

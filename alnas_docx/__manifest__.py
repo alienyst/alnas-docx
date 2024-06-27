@@ -41,7 +41,7 @@
     'license': 'LGPL-3',
     
     'external_dependencies': {
-        'python': ['docxtpl', 'docxcompose', 'html2docx', 'num2words', 'Babel'],
+        'python': ['docxtpl', 'docxcompose', 'html2text', 'num2words', 'Babel'],
     }
     
 }

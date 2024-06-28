@@ -47,7 +47,8 @@ class IrActionsReport(models.Model):
             'parsehtml': self._parse_html,
             'formatdate': self._formatdate,
             'company': self.env.company,
-            'lang' : self._context.get('lang', 'id_ID')
+            'lang' : self._context.get('lang', 'id_ID'),
+            'sysdate': fields.Datetime.now(),
         }
         
         if report.docx_merge_mode == 'composer':

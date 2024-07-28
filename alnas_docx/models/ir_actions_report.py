@@ -9,7 +9,7 @@ from docx.shared import Mm
 from bs4 import BeautifulSoup
 from num2words import num2words
 from babel.dates import format_date
-from babel.numbers import format_decimal
+from babel.numbers import format_currency
 from htmldocx import HtmlToDocx
 
 from odoo import _, api, fields, models
@@ -179,7 +179,7 @@ class IrActionsReport(models.Model):
     
     @staticmethod
     def _convert_currency(number, currency_field, locale='id_ID'):
-        return format_decimal(number, currency_field.name, locale)
+        return format_currency(number, currency_field.name, locale=locale)
 
     @staticmethod
     def _render_html_as_subdoc(tpl, html_code=None):

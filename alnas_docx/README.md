@@ -28,6 +28,8 @@ To call and write the field name, use the following format: `{{docs.field_name}}
 - `{{spelled_out(docs.numeric_field)}}`: Spell out numbers
 - `{{formatdate(docs.date_field)}}`: Format dates
 - `{{parsehtml(docs.html_field)}}`: Parse HTML fields
+- `{{convert_currency(docs.monetary_field, docs.currency_id)}}`: Show monetary field
+- `{{render_image(docs.image_field)}} or {{render_image(docs.image_field, width=10, height=10)}}`: Render Image in Mm.
 
 Note: The functions will be updated as needed.
 

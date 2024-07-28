@@ -86,8 +86,7 @@ class IrActionsReport(models.Model):
             context = {
                 **context,
                 "docs": obj,
-                "data": data,
-                "html": {},
+                "data": data
             }
 
             temp = BytesIO()
@@ -121,8 +120,7 @@ class IrActionsReport(models.Model):
             context = {
                 **context,
                 "docs": obj,
-                "data": data,
-                "html": {},
+                "data": data
             }
 
             temp = BytesIO()

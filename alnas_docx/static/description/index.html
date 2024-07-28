@@ -31,9 +31,9 @@
         <ul>
         <li><code>{{spelled_out(docs.numeric_field)}}</code>: Spell out numbers</li>
         <li><code>{{formatdate(docs.date_field)}}</code>: Format dates</li>
-        <li><code>{{parsehtml(docs.html_field)}}</code>: Parse HTML fields</li>
+        <li><code>{{parsehtml(docs.html_field)}}</code> or <code>{{html2docx(docs.html_field)}}</code>: Parse HTML fields</li>
         <li><code>{{convert_currency(docs.monetary_field, docs.currency_id)}}</code>: Show monetary field</li>
-        <li><code>{{render_image(docs.image_field)}} or {{render_image(docs.image_field, width=10, height=10)}}`: Render Image in Mm.</code></li>
+        <li><code>{{render_image(docs.image_field)}}</code>  or <code>{{render_image(docs.image_field, width=10, height=10)}}</code>: Render Image in Mm.</code></li>
         </ul>
         <p>Note: The functions will be updated as needed.</p>
         <p>lang default is lang='id_ID' change if need, example = <code>{{spelled_out(docs.numeric_field, lang='en_US')}}</code></p>

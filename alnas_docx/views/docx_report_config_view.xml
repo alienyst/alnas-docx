@@ -8,9 +8,9 @@
         <field name="model">docx.report.config</field>
         <field name="arch" type="xml">
             <tree string="DOCX Report Configuration">
-                <field name="name" />
-                <field name="model_id" />
-                <field name="state"/>
+                <field name="name"  readonly="state != 'draft'"/>
+                <field name="model_id"  readonly="state != 'draft'"/>
+                <field name="state" readonly="state != 'draft'"/>
             </tree>
         </field>
     </record>
@@ -21,19 +21,19 @@
         <field name="arch" type="xml">
             <form string="DOCX Report Configuration">
             <header>
-                <button string="Publish" name="action_publish" type="object" class="oe_highlight btn-primary" states="draft"/>
-                <button string="Unpublish" name="action_unpublish" type="object" class="oe_highlight btn-secondary" states="published"/>
-                <field name="state" widget="statusbar" statusbar_visible="draft,published" statusbar_colors='{"published":"blue","draft":"red"}' />
+                <button string="Publish" name="action_publish" type="object" class="oe_highlight btn-primary" invisible="state != 'draft'"/>
+                <button string="Unpublish" name="action_unpublish" type="object" class="oe_highlight btn-secondary" invisible="state != 'published'"/>
+                <field name="state" widget="statusbar" statusbar_visible="draft,published" statusbar_colors='{"published":"blue","draft":"red"}'  readonly="state != 'draft'"/>
             </header>
                 <sheet>
                     <group>
-                        <field name="name" />
-                        <field name="model_id" options="{'no_quick_create':True,'no_create_edit':True, 'no_create':True}" />
-                        <field name="field_id" options="{'no_quick_create':True,'no_create_edit':True, 'no_create':True}" />
-                        <field name="prefix" />
-                        <field name="report_docx_template" filename="report_docx_template_filename"/>
-                        <field name="report_docx_template_filename" invisible="1"/>
-                        <field name="docx_merge_mode"/>
+                        <field name="name"  readonly="state != 'draft'"/>
+                        <field name="model_id" options="{'no_quick_create':True,'no_create_edit':True, 'no_create':True}"  readonly="state != 'draft'"/>
+                        <field name="field_id" options="{'no_quick_create':True,'no_create_edit':True, 'no_create':True}"  readonly="state != 'draft'"/>
+                        <field name="prefix"  readonly="state != 'draft'"/>
+                        <field name="report_docx_template" filename="report_docx_template_filename" readonly="state != 'draft'"/>
+                        <field name="report_docx_template_filename" invisible="1" readonly="state != 'draft'"/>
+                        <field name="docx_merge_mode" readonly="state != 'draft'"/>
                         <field name="print_report_name"/>
                     </group>
                 </sheet>

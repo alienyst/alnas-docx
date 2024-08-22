@@ -14,7 +14,6 @@ class DocxReportConfig(models.Model):
         string="Report Name",
         required=True,
         readonly=True,
-        states={"draft": [("readonly", False)]},
         help="Name of the report",
     )
     model_id = fields.Many2one(
@@ -23,7 +22,6 @@ class DocxReportConfig(models.Model):
         required=True,
         ondelete="cascade",
         readonly=True,
-        states={"draft": [("readonly", False)]},
         help="Model to which this report will be attached",
     )
     field_id = fields.Many2one(
@@ -33,26 +31,22 @@ class DocxReportConfig(models.Model):
         ondelete="cascade",
         domain="[('model_id', '=', model_id),('ttype', '=', 'char')]",
         readonly=True,
-        states={"draft": [("readonly", False)]},
         help="Field to be used as the report name",
     )
     report_docx_template = fields.Binary(
         string="Report DOCX Template",
         required=True,
         readonly=True,
-        states={"draft": [("readonly", False)]},
         help="DOCX template to be used for the report",
     )
     report_docx_template_filename = fields.Char(
         string="Report DOCX Template Name",
         required=True,
         readonly=True,
-        states={"draft": [("readonly", False)]},
     )
     prefix = fields.Char(
         string="Prefix",
         readonly=True,
-        states={"draft": [("readonly", False)]},
         help="Prefix to be used in the report name",
     )
     state = fields.Selection(
@@ -62,7 +56,6 @@ class DocxReportConfig(models.Model):
         tracking=True,
         copy=False,
         readonly=True,
-        states={"draft": [("readonly", False)]},
     )
     action_report_id = fields.Many2one(
         "ir.actions.report", string="Related Report Action", readonly=True, copy=False
@@ -73,7 +66,6 @@ class DocxReportConfig(models.Model):
         default="composer",
         required=True,
         readonly=True,
-        states={"draft": [("readonly", False)]},
         help="Mode to be used for merging the DOCX template with the data, if 'Composer' is selected, the report will be generated as a single DOCX file, if 'Zip' is selected, the report will be generated as a ZIP file containing multiple DOCX files.",
     )
 

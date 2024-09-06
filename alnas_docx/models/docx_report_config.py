@@ -61,12 +61,16 @@ class DocxReportConfig(models.Model):
         "ir.actions.report", string="Related Report Action", readonly=True, copy=False
     )
     docx_merge_mode = fields.Selection(
-        [("composer", "Composer"), ("zip", "Zip")],
+        [("composer", "Composer"), ("zip", "Zip"), ("pdf", "PDF")],
         string="DOCX Merge Mode",
         default="composer",
         required=True,
         readonly=True,
-        help="Mode to be used for merging the DOCX template with the data, if 'Composer' is selected, the report will be generated as a single DOCX file, if 'Zip' is selected, the report will be generated as a ZIP file containing multiple DOCX files.",
+        states={"draft": [("readonly", False)]},
+        help="Mode to be used for merging the DOCX template with the data, \n \
+            if 'Composer' is selected, the report will be generated as a single DOCX file, \n \
+            if 'Zip' is selected, the report will be generated as a ZIP file containing multiple DOCX files, \n \
+            if 'PDF' is selected, the report will be converted to PDF file.",
     )
 
     print_report_name = fields.Char(

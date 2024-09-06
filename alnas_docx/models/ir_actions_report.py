@@ -1,5 +1,9 @@
 import base64
 import zipfile
+import os
+import subprocess
+import tempfile
+import shutil
 from io import BytesIO
 from functools import partial
 from docxtpl import DocxTemplate, InlineImage
@@ -26,7 +30,7 @@ class IrActionsReport(models.Model):
     report_docx_template = fields.Binary(string="Report DOCX Template")
     report_docx_template_name = fields.Char(string="Report DOCX Template Name")
     docx_merge_mode = fields.Selection(
-        [("composer", "Composer"), ("zip", "Zip")],
+        [("composer", "Composer"), ("zip", "Zip"), ("pdf", "PDF")],
         string="DOCX Mode",
         default="composer",
     )
@@ -140,12 +144,41 @@ class IrActionsReport(models.Model):
 
         return zip_buffer.read()
 
-    # Next Improvement
     def _render_docx_to_pdf_mode(self, doc_template, doc_obj, data, context):
-        raise NotImplementedError("This method is not implemented yet.")
+        docx_file = self._render_composer_mode(doc_template, doc_obj, data, context)
+        temp_dir = tempfile.mkdtemp()
+        os.makedirs(temp_dir, exist_ok=True)
 
-    def _convert_docx_to_pdf(self, docx_stream):
-        raise NotImplementedError("This method is not implemented yet.")
+        try:
+            docx_file_path = os.path.join(temp_dir, 'document.docx')
+            with open(docx_file_path, 'wb') as f:
+                f.write(docx_file)
+
+            pdf_file_path = self.convert_file_to_pdf(docx_file_path, temp_dir)
+
+            if not pdf_file_path:
+                raise Exception('PDF conversion failed.')
+
+            with open(pdf_file_path, 'rb') as pdf_file:
+                pdf_bytes = BytesIO(pdf_file.read())
+
+        finally:
+            shutil.rmtree(temp_dir)
+
+        return pdf_bytes.read()
+
+    def convert_file_to_pdf(self, file_path, output_dir):
+        subprocess.run(
+            f'/usr/bin/libreoffice \
+            --headless \
+            --convert-to pdf \
+            --outdir {output_dir} {file_path}', shell=True)
+
+        pdf_file_path = os.path.join(output_dir, f'{file_path.rsplit("/", 1)[1].split(".")[0]}.pdf')        
+        if os.path.exists(pdf_file_path):
+            return pdf_file_path
+        else:
+            return None
 
     @staticmethod
     def _render_image(tpl, imgb64, width=None, height=None):

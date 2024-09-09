@@ -168,17 +168,22 @@ class IrActionsReport(models.Model):
         return pdf_bytes.read()
 
     def convert_file_to_pdf(self, file_path, output_dir):
-        subprocess.run(
-            f'/usr/bin/libreoffice \
-            --headless \
-            --convert-to pdf \
-            --outdir {output_dir} {file_path}', shell=True)
-
-        pdf_file_path = os.path.join(output_dir, f'{file_path.rsplit("/", 1)[1].split(".")[0]}.pdf')        
+        librepath = self._get_libreoffice_path()
+        subprocess.run([librepath, '--headless', '--convert-to', 'pdf', '--outdir', output_dir, file_path])
+        pdf_file_name = os.path.splitext(os.path.basename(file_path))[0] + '.pdf' 
+        pdf_file_path = os.path.join(output_dir, pdf_file_name)        
         if os.path.exists(pdf_file_path):
             return pdf_file_path
         else:
             return None
+
+    def _get_libreoffice_path(self):
+        libreoffice = self.env.ref('alnas_docx.default_libreoffice_path')
+        if not libreoffice and not libreoffice.value:
+            raise ValidationError('Libreoffice path doesnt exits, \n \
+                please set in Settings => Technical => Parameters => System Parameters => default_libreoffice_path')
+            
+        return libreoffice.value
 
     @staticmethod
     def _render_image(tpl, imgb64, width=None, height=None):

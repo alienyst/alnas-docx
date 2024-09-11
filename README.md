@@ -35,6 +35,21 @@ Note: The functions will be updated as needed.
 
 lang default is lang='id_ID' change if need, example = `{{spelled_out(docs.numeric_field, lang='en_US')}}`
 
+### Docx Mode
+
+There are three modes for generating `.docx` reports:
+
+1. **composer**: Generate a `.docx` file
+2. **zip**: Generate a `.zip` containing the `.docx` file
+3. **pdf**: Convert the `.docx` file to PDF using LibreOffice
+
+#### PDF Mode
+
+If you want to use the "pdf" option, ensure that LibreOffice is installed. Then set the LibreOffice path in **Settings** => **Technical** => **Parameters** => **System Parameters**, and search for the key `default_libreoffice_path`. Set the value according to your LibreOffice installation path:
+
+- **Linux**: `/usr/bin/libreoffice`
+- **Windows**: `C:\Program Files\LibreOffice\program\soffice.exe`
+
 ## Feedback
 
 We welcome any feedback and suggestions, especially for improving this module. Thank you!

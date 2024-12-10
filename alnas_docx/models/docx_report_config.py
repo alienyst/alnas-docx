@@ -66,7 +66,6 @@ class DocxReportConfig(models.Model):
         default="composer",
         required=True,
         readonly=True,
-        states={"draft": [("readonly", False)]},
         help="Mode to be used for merging the DOCX template with the data, \n \
             if 'Composer' is selected, the report will be generated as a single DOCX file, \n \
             if 'Zip' is selected, the report will be generated as a ZIP file containing multiple DOCX files, \n \

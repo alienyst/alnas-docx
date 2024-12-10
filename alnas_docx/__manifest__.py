@@ -9,6 +9,8 @@
     """,
 
     'author': "Ali Ns",
+    
+    'maintainers': ["salvorapi"],
 
     'website': "https://github.com/alienyst",
     
@@ -43,7 +45,7 @@
     'license': 'LGPL-3',
     
     'external_dependencies': {
-        'python': ['docxtpl', 'docxcompose', 'htmldocx', 'beautifulsoup4'],
+        'python': ['docxtpl', 'htmldocx', 'beautifulsoup4'],
     }
     
 }

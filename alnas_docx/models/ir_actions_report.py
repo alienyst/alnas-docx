@@ -67,6 +67,7 @@ class IrActionsReport(models.Model):
             "render_image": render_image,
             "html2docx": html2docx,
             "convert_currency": self._convert_currency,
+            "formatabs": self._format_abs
         }
 
         if report.docx_merge_mode == "composer":
@@ -216,6 +217,10 @@ class IrActionsReport(models.Model):
     @staticmethod
     def _convert_currency(number, currency_field, locale='id_ID'):
         return format_currency(number, currency_field.name, locale=locale)
+
+    @staticmethod
+    def _format_abs(number):
+        return abs(number)
 
     @staticmethod
     def _render_html_as_subdoc(tpl, html_code=None):

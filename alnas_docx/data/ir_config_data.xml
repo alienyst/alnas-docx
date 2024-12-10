@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
-    <data noupdate="1">
+    <data noupdate="0">
         <record id="default_libreoffice_path" model="ir.config_parameter">
             <field name="key">libreoffice.path</field> 
             <field name="value">/usr/bin/libreoffice</field> 

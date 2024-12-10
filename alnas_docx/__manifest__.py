@@ -9,14 +9,14 @@
     """,
 
     'author': "Ali Ns",
-
+    
     'website': "https://github.com/alienyst",
     
     'images': ["static/description/banner.png"],
 
     'category': 'Technical',
     
-    'version': '1.0',
+    'version': '18.0.1.0.0',
         
     'application': True,
     
@@ -43,7 +43,7 @@
     'license': 'LGPL-3',
     
     'external_dependencies': {
-        'python': ['docxtpl', 'docxcompose', 'htmldocx', 'beautifulsoup4'],
+        'python': ['docxtpl', 'htmldocx', 'beautifulsoup4'],
     }
     
 }

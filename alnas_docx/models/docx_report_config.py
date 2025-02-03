@@ -118,6 +118,7 @@ class DocxReportConfig(models.Model):
 
         return True
 
+    @api.model
     def action_publish(self):
         self._action_publish()
         return self._refresh_page()
@@ -129,6 +130,7 @@ class DocxReportConfig(models.Model):
                 record.state = "draft"
             else:
                 raise UserError("Report already unpublished")
+                
         return True
 
     def action_unpublish(self):
@@ -139,7 +141,7 @@ class DocxReportConfig(models.Model):
         return {
             "name": self.name,
             "model": self.model_id.model,
-            "report_type": "docx",
+            "report_type": "docxtpl",
             "report_docx_template": self.report_docx_template,
             "report_docx_template_name": self.report_docx_template_filename,
             "report_name": self._prepare_template_name(),
@@ -153,13 +155,16 @@ class DocxReportConfig(models.Model):
         hash_hex = hash_object.hexdigest()
         return f"alnas_docx.{hash_hex}"
 
-    @api.ondelete(at_uninstall=False)
-    def _unlink_docx_report(self):
+
+    def unlink(self):
         for rec in self:
             if rec.state == "published":
                 rec.action_unpublish()
+
             if rec.action_report_id:
                 rec.action_report_id.unlink()
+
+        return super().unlink()
 
     def _refresh_page(self):
         return {

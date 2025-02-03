@@ -25,7 +25,7 @@ class IrActionsReport(models.Model):
     _inherit = "ir.actions.report"
 
     report_type = fields.Selection(
-        selection_add=[("docx", "DOCX")], ondelete={"docx": "cascade"}
+        selection_add=[("docxtpl", "DOCX")], ondelete={"docxtpl": "cascade"}
     ) # add docx type
     report_docx_template = fields.Binary(string="Report DOCX Template")
     report_docx_template_name = fields.Char(string="Report DOCX Template Name")
@@ -39,13 +39,28 @@ class IrActionsReport(models.Model):
     def _check_report_type(self):
         for rec in self:
             if (
-                rec.report_type == "docx"
+                rec.report_type == "docxtpl"
                 and not rec.report_docx_template
                 and not rec.report_docx_template_name.endswith(".docx")
             ):
                 raise ValidationError(_("Please upload a DOCX template."))
 
-    def _render_docx(self, report_ref, docids, data):
+    @api.model
+    def _get_report_from_name(self, report_name):
+        res = super(IrActionsReport, self)._get_report_from_name(report_name)
+        if res:
+            return res
+            
+        report_obj = self.env["ir.actions.report"]
+        qwebtypes = ["docxtpl"]
+        conditions = [
+            ("report_type", "in", qwebtypes),
+            ("report_name", "=", report_name),
+        ]
+        context = self.env["res.users"].context_get()
+        return report_obj.with_context(context).search(conditions, limit=1)
+
+    def _render_docxtpl(self, report_ref, docids, data):
         report = self._get_report_from_name(report_ref)
         template = report.report_docx_template
 

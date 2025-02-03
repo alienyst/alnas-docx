@@ -22,7 +22,7 @@
     
     'installable': True,
 
-    'depends': ['base', 'mail'],
+    'depends': ['base', 'web', 'mail'],
 
     'data': [
         'security/ir.model.access.csv',
@@ -32,18 +32,14 @@
         'views/docx_report_config_view.xml',
         
         'views/ir_action_report_view.xml',
+
+        'views/webclient_templates.xml',
     ],
-    
-    'assets': {
-        'web.assets_backend': [
-            'alnas_docx/static/src/js/report/action_manager_report.esm.js'
-        ]
-    },
 
     'license': 'LGPL-3',
     
     'external_dependencies': {
-        'python': ['docxtpl', 'docxcompose', 'htmldocx', 'beautifulsoup4'],
+        'python': ['docxtpl', 'htmldocx', 'beautifulsoup4'],
     }
     
 }

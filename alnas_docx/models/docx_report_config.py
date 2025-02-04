@@ -118,7 +118,6 @@ class DocxReportConfig(models.Model):
 
         return True
 
-    @api.model
     def action_publish(self):
         self._action_publish()
         return self._refresh_page()

@@ -33,11 +33,28 @@
         <li><code>{{formatdate(docs.date_field)}}</code>: Format dates</li>
         <li><code>{{parsehtml(docs.html_field)}}</code> or <code>{{html2docx(docs.html_field)}}</code>: Parse HTML fields</li>
         <li><code>{{convert_currency(docs.monetary_field, docs.currency_id)}}</code>: Show monetary field</li>
-        <li><code>{{render_image(docs.image_field)}}</code>  or <code>{{render_image(docs.image_field, width=10, height=10)}}</code>: Render Image in Mm.</code></li>
-        </ul>
-        <p>Note: The functions will be updated as needed.</p>
-        <p>lang default is lang='id_ID' change if need, example = <code>{{spelled_out(docs.numeric_field, lang='en_US')}}</code></p>
+        <li><code>{{render_image(docs.image_field)}}</code> or <code>{{render_image(docs.image_field, width=10, height=10)}}</code>: Render image in millimeters</li>
+    </ul>
+    <p>Note: These functions will be updated as needed.</p>
+    <p>The default language is <code>lang='id_ID'</code>, but it can be changed. For example: <code>{{spelled_out(docs.numeric_field, lang='en_US')}}</code> <code>{{formatdate(docs.numeric_field, locale='en_US')}}</code> <code>{{convert_currency(docs.numeric_field, locale='en_US')}}</code></p>
+    <p>for format_date and convert_currency, you can use all parameter from babel function <a href="https://babel.pocoo.org/en/latest/api/numbers.html" target="_blank">Babel Documentation</a></p>
     
+    <h4>Docx Output Modes</h4>
+    <p>There are three modes for generating docx reports:</p>
+    <ol>
+        <li>composer => Generate a docx file</li>
+        <li>zip => Generate a zip containing the docx file</li>
+        <li>pdf => Convert the docx file to PDF using LibreOffice</li>
+    </ol>
+    <p>If you want to use the 'pdf' option, ensure you have installed LibreOffice. Then set the LibreOffice path in Settings => Technical => Parameters => System Parameters, and search for the key <code>default_libreoffice_path</code>. Set the value according to the LibreOffice installation path:</p>
+    <ul>
+        <li>Linux: <code>/usr/bin/libreoffice</code></li>
+        <li>Windows: <code>C:\Program Files\LibreOffice\program\soffice.exe</code></li>
+    </ul>
+
+    <h3>Credit</h3>
+    <p>Special thanks to <a href="https://github.com/salvorapi" target="_blank">Salvo (salvorapi)</a> for helping to update the code from Odoo 16 to Odoo 17.</p>
+
     <h3>Feedback</h3>
     <p>We welcome any feedback and suggestions, especially for improving this module. Thank you!</p>
 

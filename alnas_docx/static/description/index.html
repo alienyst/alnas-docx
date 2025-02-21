@@ -41,8 +41,9 @@
         <li><code>{{render_image(docs.image_field)}}</code> or <code>{{render_image(docs.image_field, width=10, height=10)}}</code>: Render image in millimeters</li>
     </ul>
     <p>Note: These functions will be updated as needed.</p>
-    <p>The default language is <code>lang='id_ID'</code>, but it can be changed. For example: <code>{{spelled_out(docs.numeric_field, lang='en_US')}}</code></p>
-
+    <p>The default language is <code>lang='id_ID'</code>, but it can be changed. For example: <code>{{spelled_out(docs.numeric_field, lang='en_US')}}</code> <code>{{formatdate(docs.numeric_field, locale='en_US')}}</code> <code>{{convert_currency(docs.numeric_field, locale='en_US')}}</code></p>
+    <p>for format_date and convert_currency, you can use all parameter from babel function <a href="https://babel.pocoo.org/en/latest/api/numbers.html" target="_blank">Babel Documentation</a></p>
+    
     <h4>Docx Output Modes</h4>
     <p>There are three modes for generating docx reports:</p>
     <ol>

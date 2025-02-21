@@ -206,16 +206,16 @@ class IrActionsReport(models.Model):
         return soup.get_text()
 
     @staticmethod
-    def _formatdate(date_required=fields.Datetime.today(), format="full", lang="id_ID"):
-        return format_date(date_required, format=format, locale=lang)
+    def _formatdate(date_required=fields.Datetime.today(), format="full", lang="id_ID", **kwargs):
+        return format_date(date=date_required, format=format, locale=lang, **kwargs)
 
     @staticmethod
-    def _spelled_out(number, lang="id_ID", to="cardinal"):
-        return num2words(number, lang=lang, to=to)
+    def _spelled_out(number, lang="id_ID", **kwargs):
+        return num2words(number=number, lang=lang, **kwargs)
     
     @staticmethod
-    def _convert_currency(number, currency_field, locale='id_ID'):
-        return format_currency(number, currency_field.name, locale=locale)
+    def _convert_currency(number, currency_field, locale='id_ID', **kwargs):
+        return format_currency(number=number, currency=currency_field.name, locale=locale, **kwargs)
 
     @staticmethod
     def _render_html_as_subdoc(tpl, html_code=None):

@@ -32,7 +32,7 @@ class ReportController(report.ReportController):
                     del data["context"]["lang"]
                 context.update(data["context"])
 
-            docxtpl_files = report.with_context(**context)._render_docxtpl(reportname, docids, data=data)
+            docxtpl_files, _ = report.with_context(**context)._render_docxtpl(res_ids=docids, data=data)
 
             report_name = report.name
             if report.print_report_name and not len(docids) > 1:

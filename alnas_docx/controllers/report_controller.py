@@ -30,13 +30,13 @@ class DocxReportController(ReportController):
                 data["context"] = json.loads(data["context"])
                 context.update(data["context"])
                 
-            docx_files = report.with_context(**context)._render_docx(reportname, docids, data=data)
+            docx_files, format_file = report.with_context(**context)._render_docx(reportname, docids, data=data)
             
-            if report.docx_merge_mode == 'composer':
+            if format_file == 'docx':
                 httpheaders = [
                     ('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
                 ]
-            elif report.docx_merge_mode == 'zip':
+            elif format_file == 'zip':
                 httpheaders = [
                     ('Content-Type', 'application/zip'),
                 ]
@@ -110,5 +110,6 @@ class DocxReportController(ReportController):
             filename = "%s.%s" % (name, "zip")
         else:
             filename = "%s.%s" % (name, "pdf")
+            
         return filename
 

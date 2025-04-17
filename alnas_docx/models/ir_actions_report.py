@@ -46,7 +46,7 @@ class IrActionsReport(models.Model):
                 raise ValidationError(_("Please upload a DOCX template."))
 
     def _render_docx(self, report_ref, docids, data):
-        report = self._get_report_from_name(report_ref)
+        report = self._get_report(report_ref)
         template = report.report_docx_template
 
         if not template:
@@ -100,7 +100,7 @@ class IrActionsReport(models.Model):
             temp.seek(0)
 
             if len(doc_obj) == 1:
-                return temp.read()
+                return temp.read(), 'docx'
             else:
                 if idx == 0:
                     master_doc = Document(temp)
@@ -114,7 +114,7 @@ class IrActionsReport(models.Model):
         composer.save(temp_output)
         temp_output.seek(0)
 
-        return temp_output.read()
+        return temp_output.read(), 'docx'
 
     def _render_zip_mode(
         self, doc_template, doc_obj, data, context, report_name="report"
@@ -143,10 +143,10 @@ class IrActionsReport(models.Model):
 
         zip_buffer.seek(0)
 
-        return zip_buffer.read()
+        return zip_buffer.read(), 'zip'
 
     def _render_docx_to_pdf_mode(self, doc_template, doc_obj, data, context):
-        docx_file = self._render_composer_mode(doc_template, doc_obj, data, context)
+        docx_file, _ = self._render_composer_mode(doc_template, doc_obj, data, context)
         temp_dir = tempfile.mkdtemp()
         os.makedirs(temp_dir, exist_ok=True)
 
@@ -166,7 +166,7 @@ class IrActionsReport(models.Model):
         finally:
             shutil.rmtree(temp_dir)
 
-        return pdf_bytes.read()
+        return pdf_bytes.read(), 'pdf'
 
     def convert_file_to_pdf(self, file_path, output_dir):
         librepath = self._get_libreoffice_path()

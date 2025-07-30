@@ -39,7 +39,7 @@
     'license': 'LGPL-3',
     
     'external_dependencies': {
-        'python': ['docxtpl', 'htmldocx', 'beautifulsoup4'],
+        'python': ['docxtpl', 'htmldocx'],
     }
     
 }

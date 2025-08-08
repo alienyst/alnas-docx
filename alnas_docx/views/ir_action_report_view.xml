@@ -8,6 +8,7 @@
                 <field name="docx_merge_mode" attrs="{'invisible': [('report_type', '!=', 'docx')]}"/>
                 <field name="report_docx_template" filename="report_docx_template_name" attrs="{'invisible': [('report_type', '!=', 'docx')]}"/>
                 <field name="report_docx_template_name" invisible="1"/>
+                <field name="docx_autoescape" attrs="{'invisible': [('report_type', '!=', 'docx')]}"/>
             </xpath>
         </field>
     </record>

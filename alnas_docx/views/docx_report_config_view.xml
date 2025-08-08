@@ -35,6 +35,7 @@
                         <field name="report_docx_template_filename" invisible="1"/>
                         <field name="docx_merge_mode"/>
                         <field name="print_report_name"/>
+                        <field name="autoescape"/>
                     </group>
                 </sheet>
                 <div class="oe_chatter">

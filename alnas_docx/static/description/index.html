@@ -35,6 +35,13 @@
         <li><code>{{p html2docx(docs.html_field)}}</code>: Render HTML as subdocument</li>
         <li><code>{{convert_currency(docs.monetary_field, docs.currency_id)}}</code>: Show monetary field</li>
         <li><code>{{render_image(docs.image_field)}}</code> or <code>{{render_image(docs.image_field, width=10, height=10)}}</code>: Render image in millimeters</li>
+        <li><code>{{r rich_text(docs.text_field)}}: Add Rich Text</code></li>
+        <li><code>{{add_subdoc(docs.docx_binary_field)}}: Add Subdocument</code></li>
+        <li><code>{{replace_image('file_name_in_word', docs.image_field)}}: Replace the dummy picture in word document with another one</code></li>
+        <li><code>{{replace_media('file_name_in_word', docs.image_field)}}: Unlike replace_pic() method, dummy_header_pic.jpg MUST exist in the template directory when rendering and saving the generated docx.</code></li>
+        <li><code>{{replace_embedded('file_name_in_word', docs.binary_field)}}: It works like medias replacement, except it is for embedded objects like embedded docx</code></li>
+        <li><code>{{replace_zipname('file_path_in_word', docs.binary_field)}}: replace_embedded() may not work on other documents than embedded docx. Instead, you should use zipname replacement</code></li>
+
     </ul>
     <p>Note: These functions will be updated as needed.</p>
     <p>The default language is <code>lang='id_ID'</code>, but it can be changed. For example: <code>{{spelled_out(docs.numeric_field, lang='en_US')}}</code> <code>{{formatdate(docs.numeric_field, locale='en_US')}}</code> <code>{{convert_currency(docs.numeric_field, locale='en_US')}}</code></p>

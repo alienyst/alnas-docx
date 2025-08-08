@@ -31,6 +31,12 @@ To call and write the field name, use the following format: `{{docs.field_name}}
 - `{{p html2docx(docs.html_field)}}`: Render HTML as subdocument
 - `{{convert_currency(docs.monetary_field, docs.currency_id)}}`: Show monetary field
 - `{{render_image(docs.image_field)}}` or `{{render_image(docs.image_field, width=10, height=10)}}`: Render Image in Mm.
+- `{{r rich_text(docs.text_field)}}`: Add Rich Text
+- `{{add_subdoc(docs.docx_binary_field)}}`: Add Subdocument
+- `{{replace_image('file_name_in_word', docs.image_field)}}`: Replace the dummy picture in word document with another one
+- `{{replace_media('file_name_in_word', docs.image_field)}}`: Unlike replace_pic() method, dummy_header_pic.jpg MUST exist in the template directory when rendering and saving the generated docx.
+- `{{replace_embedded('file_name_in_word', docs.binary_field)}}`: It works like medias replacement, except it is for embedded objects like embedded docx.
+- `{{replace_zipname('file_path_in_word', docs.binary_field)}}`: replace_embedded() may not work on other documents than embedded docx. Instead, you should use zipname replacement.
 
 Note: The functions will be updated as needed.
 

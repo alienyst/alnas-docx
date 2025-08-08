@@ -85,6 +85,12 @@ class DocxReportConfig(models.Model):
         compute="_compute_print_report_name",
         help="Filename generated for the report",
     )
+    autoescape = fields.Boolean(
+        string="Autoescape",
+        default=False,
+        help="Enable autoescape for special character like <, > and &.",
+        states={"draft": [("readonly", False)]},
+    )
 
     @api.depends("model_id", "field_id", "prefix")
     def _compute_print_report_name(self):
@@ -145,6 +151,7 @@ class DocxReportConfig(models.Model):
             "report_docx_template_name": self.report_docx_template_filename,
             "report_name": self._prepare_template_name(),
             "docx_merge_mode": self.docx_merge_mode,
+            'docx_autoescape': self.autoescape,
             "print_report_name": self.print_report_name,
         }
 

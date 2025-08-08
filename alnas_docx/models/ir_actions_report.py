@@ -6,19 +6,15 @@ import tempfile
 import shutil
 from io import BytesIO
 from functools import partial
-from docxtpl import DocxTemplate, InlineImage
-from docxcompose.composer import Composer
 from docx import Document
-from docx.shared import Mm
-from bs4 import BeautifulSoup
-from num2words import num2words
-from babel.dates import format_date
-from babel.numbers import format_currency
-from htmldocx import HtmlToDocx
+from docxtpl import DocxTemplate
+from docxcompose.composer import Composer
 
 from odoo import _, api, fields, models
 from odoo.tools.safe_eval import safe_eval, time
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError, MissingError, UserError
+
+from ..tools import misc as misc_tools
 
 
 class IrActionsReport(models.Model):
@@ -33,6 +29,11 @@ class IrActionsReport(models.Model):
         [("composer", "Composer"), ("zip", "Zip"), ("pdf", "PDF")],
         string="DOCX Mode",
         default="composer",
+    )
+    docx_autoescape = fields.Boolean(
+        string="Autoescape (Docx)",
+        default=False,
+        help="Enable autoescape for special character like <, > and &.",
     )
 
     @api.constrains("report_type")
@@ -60,6 +61,27 @@ class IrActionsReport(models.Model):
         context = self.env["res.users"].context_get()
         return report_obj.with_context(context).search(conditions, limit=1)
 
+    def _get_rendering_context_docxtpl(self, doc_template):
+        context = {
+            "company": self.env.company,
+            "lang": self._context.get("lang", "id_ID"),
+            "sysdate": fields.Datetime.now(),
+            "spelled_out": misc_tools.spelled_out,
+            "parsehtml": misc_tools.parse_html,
+            "formatdate": misc_tools.formatdate,
+            "convert_currency": misc_tools.convert_currency,
+            "formatabs": misc_tools.format_abs,
+            "rich_text": misc_tools.rich_text,
+            "render_image": partial(misc_tools.render_image, doc_template),
+            "html2docx": partial(misc_tools.render_html_as_subdoc, doc_template),
+            "add_subdoc": partial(misc_tools.add_new_subdoc, doc_template),
+            "replace_image": partial(misc_tools.replace_image, doc_template),
+            "replace_media": partial(misc_tools.replace_media, doc_template),
+            "replace_embedded": partial(misc_tools.replace_embedded, doc_template),
+            "replace_zipname": partial(misc_tools.replace_zipname, doc_template),
+        }
+        return context
+    
     def _render_docxtpl(self, res_ids=None, data=None):
         report = self.sudo()
         template = report.report_docx_template
@@ -69,23 +91,11 @@ class IrActionsReport(models.Model):
 
         doc_template = DocxTemplate(BytesIO(base64.b64decode(template)))
         doc_obj = self.env[report.model].browse(res_ids)
-        render_image = partial(self._render_image, doc_template)
-        html2docx = partial(self._render_html_as_subdoc, doc_template)
-
-        context = {
-            "spelled_out": self._spelled_out,
-            "parsehtml": self._parse_html,
-            "formatdate": self._formatdate,
-            "company": self.env.company,
-            "lang": self._context.get("lang", "id_ID"),
-            "sysdate": fields.Datetime.now(),
-            "render_image": render_image,
-            "html2docx": html2docx,
-            "convert_currency": self._convert_currency,
-        }
-
+        context = self._get_rendering_context_docxtpl(doc_template=doc_template)
+        autoescape = report.docx_autoescape
+    
         if report.docx_merge_mode == "composer":
-            return self._render_composer_mode(doc_template, doc_obj, data, context)
+            return self._render_composer_mode(doc_template, doc_obj, data, context, autoescape=autoescape)
         elif report.docx_merge_mode == "zip":
             return self._render_zip_mode(
                 doc_template,
@@ -93,14 +103,12 @@ class IrActionsReport(models.Model):
                 data,
                 context,
                 report_name=report.print_report_name,
+                autoescape=autoescape,
             )
         else:
-            return self._render_docx_to_pdf_mode(doc_template, doc_obj, data, context)
+            return self._render_docx_to_pdf_mode(doc_template, doc_obj, data, context, autoescape=autoescape)
 
-    def _render_composer_mode(self, doc_template, doc_obj, data, context):
-        master_doc = Document()
-        composer = Composer(master_doc)
-
+    def _render_composer_mode(self, doc_template, doc_obj, data, context, autoescape=False):
         for idx, obj in enumerate(doc_obj):
             context = {
                 **context,
@@ -109,7 +117,7 @@ class IrActionsReport(models.Model):
             }
 
             temp = BytesIO()
-            doc_template.render(context)
+            doc_template.render(context, autoescape=autoescape)
             doc_template.save(temp)
             temp.seek(0)
 
@@ -131,7 +139,7 @@ class IrActionsReport(models.Model):
         return temp_output.read(), 'docx'
 
     def _render_zip_mode(
-        self, doc_template, doc_obj, data, context, report_name="report"
+        self, doc_template, doc_obj, data, context, report_name="report", autoescape=False
     ):
         docx_files = []
 
@@ -143,7 +151,7 @@ class IrActionsReport(models.Model):
             }
 
             temp = BytesIO()
-            doc_template.render(context)
+            doc_template.render(context, autoescape=autoescape)
             doc_template.save(temp)
             temp.seek(0)
             docx_files.append(temp.read())
@@ -159,8 +167,8 @@ class IrActionsReport(models.Model):
 
         return zip_buffer.read(), 'zip'
 
-    def _render_docx_to_pdf_mode(self, doc_template, doc_obj, data, context):
-        docx_file = self._render_composer_mode(doc_template, doc_obj, data, context)
+    def _render_docx_to_pdf_mode(self, doc_template, doc_obj, data, context, autoescape=False):
+        docx_file, _ = self._render_composer_mode(doc_template, doc_obj, data, context, autoescape=autoescape)
         temp_dir = tempfile.mkdtemp()
         os.makedirs(temp_dir, exist_ok=True)
 
@@ -172,7 +180,7 @@ class IrActionsReport(models.Model):
             pdf_file_path = self.convert_file_to_pdf(docx_file_path, temp_dir)
 
             if not pdf_file_path:
-                raise Exception('PDF conversion failed.')
+                raise UserError('PDF conversion failed.')
 
             with open(pdf_file_path, 'rb') as pdf_file:
                 pdf_bytes = BytesIO(pdf_file.read())
@@ -199,51 +207,3 @@ class IrActionsReport(models.Model):
                 please set in Settings => Technical => Parameters => System Parameters => default_libreoffice_path')
             
         return libreoffice.value
-
-    @staticmethod
-    def _render_image(tpl, imgb64, width=None, height=None):
-        width = Mm(width) if width else None
-        height = Mm(height) if height else None
-        
-        if not imgb64:
-            return ''
-
-        image_stream = BytesIO(base64.b64decode(imgb64))
-        return InlineImage(
-            tpl, image_descriptor=image_stream, width=width, height=height
-        )
-
-    @staticmethod
-    def _parse_html(html):
-        if not html:
-            return ""
-        soup = BeautifulSoup(html, "html.parser")
-        return soup.get_text()
-
-    @staticmethod
-    def _formatdate(date_required=fields.Datetime.today(), format="full", lang="id_ID", **kwargs):
-        return format_date(date=date_required, format=format, locale=lang, **kwargs)
-
-    @staticmethod
-    def _spelled_out(number, lang="id_ID", **kwargs):
-        return num2words(number=number, lang=lang, **kwargs)
-    
-    @staticmethod
-    def _convert_currency(number, currency_field, locale='id_ID', **kwargs):
-        return format_currency(number=number, currency=currency_field.name, locale=locale, **kwargs)
-
-    @staticmethod
-    def _render_html_as_subdoc(tpl, html_code=None):
-        if not (
-            isinstance(html_code, str)
-            and bool(BeautifulSoup(html_code, "html.parser").find())
-        ):
-            return ""
-
-        temp = BytesIO()
-        desc_document = Document()
-        new_parser = HtmlToDocx()
-        new_parser.add_html_to_document(html_code, desc_document)
-        desc_document.save(temp)
-        temp.seek(0)
-        return tpl.new_subdoc(temp)

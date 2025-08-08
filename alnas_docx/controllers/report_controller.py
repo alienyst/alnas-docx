@@ -49,7 +49,7 @@ class ReportController(report.ReportController):
                 httpheaders.append(
                     ('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
                 )
-            elif report.docxtpl_merge_mode == 'zip':
+            elif report.docx_merge_mode == 'zip':
                 httpheaders.append(
                     ('Content-Type', 'application/zip'),
                 )

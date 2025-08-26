@@ -83,5 +83,4 @@
         <menuitem name="Docx Report" id="menu_docx_config" action="docx_report_action" sequence="1"/>
     </menuitem>
 
-
 </odoo>

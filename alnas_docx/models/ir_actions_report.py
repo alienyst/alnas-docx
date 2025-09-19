@@ -49,7 +49,7 @@ class IrActionsReport(models.Model):
     def _get_rendering_context_docx(self, doc_template):
         context = {
             "company": self.env.company,
-            "lang": self._context.get("lang", "id_ID"),
+            "lang": self.env.context.get("lang", "id_ID"),
             "sysdate": fields.Datetime.now(),
             "spelled_out": misc_tools.spelled_out,
             "parsehtml": misc_tools.parse_html,

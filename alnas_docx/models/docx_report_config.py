@@ -8,9 +8,10 @@ class DocxReportConfig(models.Model):
 
     _inherit = ["mail.thread", "mail.activity.mixin"]
     
-    _sql_constraints = [
-        ('report_code_name', 'UNIQUE(report_name)', 'Report code name must be unique!.')
-    ] 
+    _report_code_name_unique = models.Constraint(
+        "UNIQUE(report_name)",
+        'Report code name must be unique!.',
+    )
 
     name = fields.Char(
         string="Report Name",

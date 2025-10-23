@@ -33,7 +33,7 @@
                         <field name="field_id" options="{'no_quick_create':True,'no_create_edit':True, 'no_create':True}"  readonly="state != 'draft'"/>
                         <field name="prefix"  readonly="state != 'draft'"/>
                         <field name="report_docx_template" filename="report_docx_template_filename" readonly="state != 'draft'"/>
-                        <field name="report_docx_template_filename" invisible="1" readonly="state != 'draft'"/>
+                        <field name="report_docx_template_filename" invisible="1" readonly="state != 'draft'"/> <!-- Used as the file name -->
                         <field name="docx_merge_mode" readonly="state != 'draft'"/>
                         <field name="print_report_name"/>
                         <field name="autoescape" readonly="state != 'draft'"/>

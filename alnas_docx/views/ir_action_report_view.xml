@@ -7,7 +7,7 @@
             <xpath expr="//field[@name='report_type']" position="after">
                 <field name="docx_merge_mode" invisible="report_type != 'docx'" />
                 <field name="report_docx_template" filename="report_docx_template_name" invisible="report_type != 'docx'" />
-                <field name="report_docx_template_name" invisible="1" />
+                <field name="report_docx_template_name" invisible="1" /> <!-- Used as the file name -->
                 <field name="docx_autoescape" invisible="report_type != 'docx'" />
             </xpath>
         </field>

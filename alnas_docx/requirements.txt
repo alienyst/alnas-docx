@@ -1,5 +1,5 @@
-docxcompose; python_version < "3.12"
-docxcompose @ git+https://github.com/tvuotila/docxcompose.git@hotfix/90 ; python_version >= "3.12"
+docxcompose
 docxtpl
 docxcompose
 htmldocx
+beautifulsoup4

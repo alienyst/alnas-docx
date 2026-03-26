@@ -7,9 +7,7 @@ This module inspired from [Report Xlsx](https://apps.odoo.com/apps/modules/16.0/
 ## Prerequisites
 
 Before installing this module, make sure to install the following libraries:
-#### For Python 3.12 and above
-- `pip install git+https://github.com/tvuotila/docxcompose.git@hotfix/90 docxtpl htmldocx`
-#### Below Python 3.12
+
 - `pip install docxcompose docxtpl htmldocx`
 
 ## Usage

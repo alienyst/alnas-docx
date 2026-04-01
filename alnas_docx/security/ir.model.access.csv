@@ -1,2 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-alnas_docx.access_docx_report_config,access_docx_report_config,alnas_docx.model_docx_report_config,base.group_user,1,1,1,1
+access_docx_report_config_report_editors,access_docx_report_config_report_editors,alnas_docx.model_docx_report_config,group_docx_report_editors,1,1,1,1
+access_ir_model_fields_report_editors,access_ir_model_fields_report_editors,base.model_ir_model_fields,group_docx_report_editors,1,0,0,0
+accesss_ir_model_report_editors,accesss_ir_model_report_editors,base.model_ir_model,group_docx_report_editors,1,0,0,0

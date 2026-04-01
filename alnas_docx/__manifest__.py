@@ -25,8 +25,9 @@
     'depends': ['base', 'mail'],
 
     'data': [
+        'security/security.xml',
         'security/ir.model.access.csv',
-        
+
         'data/ir_config_data.xml',
         
         'views/docx_report_config_view.xml',

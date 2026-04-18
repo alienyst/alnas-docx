@@ -27,6 +27,7 @@ To call and write the field name, use the following format: `{{docs.field_name}}
 
 - `{{spelled_out(docs.numeric_field)}}`: Spell out numbers
 - `{{formatdate(docs.date_field)}}`: Format dates
+- `{{format_datetime(docs.datetime_field)}}`: Format datetime fields with correct tz, defaults to UTC. Example: {{ format_datetime(docs.your_datetime_field, 'Europe/Berlin', '%d.%m.%Y %H:%M') }}
 - `{{parsehtml(docs.html_field)}}` : Render HTML content as plain text
 - `{{p html2docx(docs.html_field)}}`: Render HTML as subdocument
 - `{{convert_currency(docs.monetary_field, docs.currency_id)}}`: Show monetary field

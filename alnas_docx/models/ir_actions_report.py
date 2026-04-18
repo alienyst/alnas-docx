@@ -54,6 +54,7 @@ class IrActionsReport(models.Model):
             "spelled_out": misc_tools.spelled_out,
             "parsehtml": misc_tools.parse_html,
             "formatdate": misc_tools.formatdate,
+            "format_datetime": misc_tools.format_datetime,
             "convert_currency": misc_tools.convert_currency,
             "formatabs": misc_tools.format_abs,
             "rich_text": misc_tools.rich_text,

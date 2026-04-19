@@ -45,6 +45,22 @@ def add_new_subdoc(tpl, docx_file):
     
     return tpl.new_subdoc()
 
+def linked_attachments_for_record(env, record):
+    """Attachments linked to ``record`` via ``res_model`` / ``res_id`` (binary only)."""
+    if not record or not record.ids:
+        return env["ir.attachment"].browse()
+    try:
+        res_id = int(record.ids[0])
+    except (TypeError, ValueError):
+        return env["ir.attachment"].browse()
+    return env["ir.attachment"].search(
+        [
+            ("res_model", "=", record._name),
+            ("res_id", "=", res_id),
+            ("type", "=", "binary"),
+        ],
+        order="id",
+    )
 
 def replace_image(tpl, dummy_pic, imgb64):
     if not imgb64:

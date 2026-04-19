@@ -46,7 +46,7 @@ class IrActionsReport(models.Model):
             ):
                 raise ValidationError(_("Please upload a DOCX template."))
 
-    def _get_rendering_context_docx(self, doc_template, pdf_state=None):
+    def _get_rendering_context_docx(self, doc_template, extra_pdfs=None):
         context = {
             "company": self.env.company,
             "lang": self._context.get("lang", "id_ID"),
@@ -69,9 +69,9 @@ class IrActionsReport(models.Model):
                 self.env, record
             ),
         }
-        if pdf_state is not None:
+        if extra_pdfs is not None:
             context["register_pdf"] = misc_tools.register_pdf_factory(
-                pdf_state["before"], pdf_state["after"]
+                extra_pdfs["before"], extra_pdfs["after"]
             )
         return context
     
@@ -86,13 +86,13 @@ class IrActionsReport(models.Model):
         doc_obj = self.env[report.model].browse(docids).with_context(
             bin_size=False
         )
-        pdf_state = (
+        extra_pdfs = (
             {"before": [], "after": []}
             if report.docx_merge_mode == "pdf"
             else None
         )
         context = self._get_rendering_context_docx(
-            doc_template=doc_template, pdf_state=pdf_state
+            doc_template=doc_template, extra_pdfs=extra_pdfs
         )
         autoescape = report.docx_autoescape
         
@@ -109,7 +109,7 @@ class IrActionsReport(models.Model):
             )
         else:
             return self._render_docx_to_pdf_mode(
-                doc_template, doc_obj, data, context, pdf_state, autoescape=autoescape
+                doc_template, doc_obj, data, context, extra_pdfs, autoescape=autoescape
             )
 
     def _render_composer_mode(self, doc_template, doc_obj, data, context, autoescape=False):
@@ -172,7 +172,7 @@ class IrActionsReport(models.Model):
         return zip_buffer.read(), 'zip'
 
     def _render_docx_to_pdf_mode(
-        self, doc_template, doc_obj, data, context, pdf_state, autoescape=False
+        self, doc_template, doc_obj, data, context, extra_pdfs, autoescape=False
     ):
         docx_file, _ = self._render_composer_mode(
             doc_template, doc_obj, data, context, autoescape=autoescape
@@ -196,9 +196,9 @@ class IrActionsReport(models.Model):
         finally:
             shutil.rmtree(temp_dir)
 
-        if pdf_state and (pdf_state["before"] or pdf_state["after"]):
+        if extra_pdfs and (extra_pdfs["before"] or extra_pdfs["after"]):
             main_pdf = misc_tools.merge_pdf_bytes(
-                main_pdf, pdf_state["before"], pdf_state["after"]
+                main_pdf, extra_pdfs["before"], extra_pdfs["after"]
             )
 
         return main_pdf, 'pdf'

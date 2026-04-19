@@ -2,6 +2,9 @@ from io import BytesIO
 from base64 import b64decode
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
+
+from odoo import _
+from odoo.exceptions import UserError
 from docx import Document
 from docx.shared import Mm
 from docxtpl import InlineImage, RichText
@@ -10,6 +13,7 @@ from num2words import num2words
 from babel.dates import format_date
 from babel.numbers import format_currency
 from htmldocx import HtmlToDocx
+from pypdf import PdfReader, PdfWriter
 
 # Partial Function
 def render_image(tpl, imgb64, width=None, height=None):
@@ -39,7 +43,6 @@ def render_html_as_subdoc(tpl, html_code=None):
     temp.seek(0)
     return tpl.new_subdoc(temp)
 
-
 def add_new_subdoc(tpl, docx_file):
     if not docx_file:
         return ""
@@ -55,6 +58,50 @@ def add_new_subdoc(tpl, docx_file):
         return tpl.new_subdoc(BytesIO(raw))
     except Exception:
         return ""
+
+def _pdf_bytes_from_source(source, label=None):
+    """Return (raw_pdf_bytes, error_label) or None to skip (empty / falsy)."""
+    if source is None or source is False:
+        return None
+    if hasattr(source, "ids"):
+        if len(source) == 0:
+            return None
+        if len(source) != 1:
+            raise UserError(
+                _("register_pdf: expected a single record, got %(count)d.")
+                % {"count": len(source)}
+            )
+        source = source[0]
+    if hasattr(source, "_name") and source._name == "ir.attachment":
+        att = source.with_context(bin_size=False)
+        data = None
+        if getattr(att, "raw", None):
+            data = att.raw
+        if not data and att.datas:
+            data = b64decode(att.datas)
+        if not data:
+            return None
+        lbl = label or att.display_name or att.name or _("attachment")
+        return data, lbl
+    if isinstance(source, (bytes, bytearray, memoryview)):
+        data = bytes(source)
+        if not data:
+            return None
+        return data, label or _("PDF")
+    if isinstance(source, str):
+        if not source.strip():
+            return None
+        try:
+            data = b64decode(source, validate=True)
+        except TypeError:
+            data = b64decode(source)
+        if not data:
+            return None
+        return data, label or _("PDF")
+    raise UserError(
+        _("register_pdf: unsupported type %(typ)s. Use binary data or ir.attachment.")
+        % {"typ": type(source).__name__}
+    )
 
 def linked_attachments_for_record(env, record):
     """Attachments linked to ``record`` via ``res_model`` / ``res_id`` (binary only)."""
@@ -72,6 +119,104 @@ def linked_attachments_for_record(env, record):
         ],
         order="id",
     )
+
+def _coerce_pdf_bytes(data):
+    """Return raw PDF bytes: decode when the buffer is still base64 text (e.g. ``JVBERi...``)."""
+    if not data:
+        return data
+    if isinstance(data, str):
+        try:
+            chunk = data.strip().encode("ascii")
+        except UnicodeEncodeError:
+            return data
+    else:
+        chunk = bytes(data)
+    if chunk.lstrip().startswith(b"%PDF"):
+        return chunk
+    try:
+        decoded = b64decode(chunk.strip())
+    except Exception:
+        return chunk
+    if decoded.lstrip().startswith(b"%PDF"):
+        return decoded
+    return chunk
+
+def _make_pdf_reader(data):
+    stream = BytesIO(data)
+    try:
+        return PdfReader(stream, strict=False, root_object_recovery_limit=None)
+    except TypeError:
+        return PdfReader(stream, strict=False)
+
+def _validate_pdf_bytes(data, label):
+    """Validate and return coerced PDF bytes for storage and merging."""
+    data = _coerce_pdf_bytes(data)
+    reader = None
+    try:
+        reader = _make_pdf_reader(data)
+        if len(reader.pages) == 0:
+            raise UserError(_("PDF has no pages (%(label)s).") % {"label": label})
+    except UserError:
+        raise
+    except Exception as err:
+        raise UserError(
+            _("Not a valid PDF (%(label)s): %(msg)s")
+            % {"label": label, "msg": str(err)}
+        ) from err
+    finally:
+        if reader is not None:
+            reader.close()
+    return data
+
+def register_pdf_factory(before_list, after_list):
+    """Side-effect helpers for PDF output mode only (merge after main report PDF)."""
+
+    def register_pdf(source, position="after", label=None):
+        got = _pdf_bytes_from_source(source, label=label)
+        if got is None:
+            return ""
+        data, err_label = got
+        data = _coerce_pdf_bytes(data)
+        if not data or not data.lstrip().startswith(b"%PDF"):
+            return ""
+        data = _validate_pdf_bytes(data, err_label)
+        pos = (position or "after").lower()
+        if pos not in ("before", "after"):
+            raise UserError(
+                _("register_pdf: position must be 'before' or 'after', not %(pos)r.")
+                % {"pos": position}
+            )
+        if pos == "before":
+            before_list.append(data)
+        else:
+            after_list.append(data)
+        return ""
+
+    return register_pdf
+
+def merge_pdf_bytes(main_pdf_bytes, before_list, after_list):
+    """Concatenate PDFs: before_list + main + after_list."""
+    if not before_list and not after_list:
+        return main_pdf_bytes
+
+    writer = PdfWriter()
+
+    def _append(data):
+        data = _coerce_pdf_bytes(data)
+        reader = _make_pdf_reader(data)
+        try:
+            writer.append(reader)
+        finally:
+            reader.close()
+
+    for chunk in before_list:
+        _append(chunk)
+    _append(main_pdf_bytes)
+    for chunk in after_list:
+        _append(chunk)
+    out = BytesIO()
+    writer.write(out)
+    return out.getvalue()
 
 def replace_image(tpl, dummy_pic, imgb64):
     if not imgb64:

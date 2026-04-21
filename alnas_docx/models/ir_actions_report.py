@@ -70,7 +70,7 @@ class IrActionsReport(models.Model):
             ),
         }
         if extra_pdfs is not None:
-            context["register_pdf"] = misc_tools.register_pdf_factory(
+            context["add_pdf"] = misc_tools.add_pdf_factory(
                 extra_pdfs["before"], extra_pdfs["after"]
             )
         return context

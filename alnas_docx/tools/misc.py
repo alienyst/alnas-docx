@@ -68,7 +68,7 @@ def _pdf_bytes_from_source(source, label=None):
             return None
         if len(source) != 1:
             raise UserError(
-                _("register_pdf: expected a single record, got %(count)d.")
+                _("add_pdf: expected a single record, got %(count)d.")
                 % {"count": len(source)}
             )
         source = source[0]
@@ -99,7 +99,7 @@ def _pdf_bytes_from_source(source, label=None):
             return None
         return data, label or _("PDF")
     raise UserError(
-        _("register_pdf: unsupported type %(typ)s. Use binary data or ir.attachment.")
+        _("add_pdf: unsupported type %(typ)s. Use binary data or ir.attachment.")
         % {"typ": type(source).__name__}
     )
 
@@ -168,10 +168,10 @@ def _validate_pdf_bytes(data, label):
             reader.close()
     return data
 
-def register_pdf_factory(before_list, after_list):
+def add_pdf_factory(before_list, after_list):
     """Side-effect helpers for PDF output mode only (merge after main report PDF)."""
 
-    def register_pdf(source, position="after", label=None):
+    def add_pdf(source, position="after", label=None):
         got = _pdf_bytes_from_source(source, label=label)
         if got is None:
             return ""
@@ -183,7 +183,7 @@ def register_pdf_factory(before_list, after_list):
         pos = (position or "after").lower()
         if pos not in ("before", "after"):
             raise UserError(
-                _("register_pdf: position must be 'before' or 'after', not %(pos)r.")
+                _("add_pdf: position must be 'before' or 'after', not %(pos)r.")
                 % {"pos": position}
             )
         if pos == "before":
@@ -192,7 +192,7 @@ def register_pdf_factory(before_list, after_list):
             after_list.append(data)
         return ""
 
-    return register_pdf
+    return add_pdf
 
 def merge_pdf_bytes(main_pdf_bytes, before_list, after_list):
     """Concatenate PDFs: before_list + main + after_list."""

@@ -1,6 +1,7 @@
 from io import BytesIO
 from base64 import b64decode
-from datetime import datetime
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 from docx import Document
 from docx.shared import Mm
 from docxtpl import InlineImage, RichText
@@ -83,6 +84,27 @@ def parse_html(html):
 
 def formatdate(date_required=datetime.today(), format="full", lang="id_ID", **kwargs):
     return format_date(date_required, format=format, locale=lang, **kwargs)
+
+def format_datetime(dt, tz=None, format="%Y-%m-%d %H:%M:%S", **kwargs):
+    if not dt:
+        return ""
+    if tz is None:
+        tz_target = ZoneInfo("UTC")
+    elif isinstance(tz, ZoneInfo):
+        tz_target = tz
+    else:
+        try:
+            tz_target = ZoneInfo(str(tz))
+        except Exception:
+            tz_target = ZoneInfo("UTC")
+    if isinstance(dt, date) and not isinstance(dt, datetime):
+        return dt.strftime(format)
+    if isinstance(dt, datetime):
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=ZoneInfo("UTC"))
+        local_dt = dt.astimezone(tz_target)
+        return local_dt.strftime(format)
+    return str(dt)
 
 def spelled_out(number, lang="id_ID", to="cardinal", **kwargs):
     return num2words(number, lang=lang, to=to, **kwargs)

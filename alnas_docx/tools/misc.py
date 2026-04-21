@@ -41,11 +41,37 @@ def render_html_as_subdoc(tpl, html_code=None):
 
 
 def add_new_subdoc(tpl, docx_file):
-    if docx_file:
-        return tpl.new_subdoc(BytesIO(b64decode(docx_file)))
-    
-    return tpl.new_subdoc()
+    if not docx_file:
+        return ""
+    try:
+        # Odoo Binary fields are base64 str; callers may also pass raw file bytes.
+        if isinstance(docx_file, str):
+            raw = b64decode(docx_file)
+        else:
+            raw = bytes(docx_file)
+        # skip if not a valid docx file
+        if not raw.startswith(b"PK\x03\x04"):
+            return ""
+        return tpl.new_subdoc(BytesIO(raw))
+    except Exception:
+        return ""
 
+def linked_attachments_for_record(env, record):
+    """Attachments linked to ``record`` via ``res_model`` / ``res_id`` (binary only)."""
+    if not record or not record.ids:
+        return env["ir.attachment"].browse()
+    try:
+        res_id = int(record.ids[0])
+    except (TypeError, ValueError):
+        return env["ir.attachment"].browse()
+    return env["ir.attachment"].search(
+        [
+            ("res_model", "=", record._name),
+            ("res_id", "=", res_id),
+            ("type", "=", "binary"),
+        ],
+        order="id",
+    )
 
 def replace_image(tpl, dummy_pic, imgb64):
     if not imgb64:

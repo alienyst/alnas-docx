@@ -65,6 +65,9 @@ class IrActionsReport(models.Model):
             "replace_media": partial(misc_tools.replace_media, doc_template),
             "replace_embedded": partial(misc_tools.replace_embedded, doc_template),
             "replace_zipname": partial(misc_tools.replace_zipname, doc_template),
+            "linked_attachments": lambda record: misc_tools.linked_attachments_for_record(
+                self.env, record
+            ),
         }
         return context
     

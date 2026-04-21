@@ -38,6 +38,7 @@ To call and write the field name, use the following format: `{{docs.field_name}}
 - `{{replace_media('file_name_in_word', docs.image_field)}}`: Unlike replace_pic() method, dummy_header_pic.jpg MUST exist in the template directory when rendering and saving the generated docx.
 - `{{replace_embedded('file_name_in_word', docs.binary_field)}}`: It works like medias replacement, except it is for embedded objects like embedded docx.
 - `{{replace_zipname('file_path_in_word', docs.binary_field)}}`: replace_embedded() may not work on other documents than embedded docx. Instead, you should use zipname replacement.
+- `linked_attachments(docs)`: Returns binary attachments linked to the record (`ir.attachment` with `res_model` / `res_id` matching `docs`). Use in a loop to merge each file, e.g. `{% for att in linked_attachments(docs) %}{{ p add_subdoc(att.datas) }}{% endfor %}`.
 
 Note: The functions will be updated as needed.
 

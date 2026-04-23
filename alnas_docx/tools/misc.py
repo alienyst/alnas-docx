@@ -13,7 +13,7 @@ from num2words import num2words
 from babel.dates import format_date
 from babel.numbers import format_currency
 from htmldocx import HtmlToDocx
-from pypdf import PdfReader, PdfWriter
+from odoo.tools.pdf import PdfReader, merge_pdf
 
 # Partial Function
 def render_image(tpl, imgb64, width=None, height=None):
@@ -164,7 +164,7 @@ def _validate_pdf_bytes(data, label):
             % {"label": label, "msg": str(err)}
         ) from err
     finally:
-        if reader is not None:
+        if reader is not None and hasattr(reader, "close"):
             reader.close()
     return data
 
@@ -199,24 +199,10 @@ def merge_pdf_bytes(main_pdf_bytes, before_list, after_list):
     if not before_list and not after_list:
         return main_pdf_bytes
 
-    writer = PdfWriter()
+    chunks = [_coerce_pdf_bytes(x) for x in [*before_list, main_pdf_bytes, *after_list]]
 
-    def _append(data):
-        data = _coerce_pdf_bytes(data)
-        reader = _make_pdf_reader(data)
-        try:
-            writer.append(reader)
-        finally:
-            reader.close()
+    return merge_pdf(chunks)
 
-    for chunk in before_list:
-        _append(chunk)
-    _append(main_pdf_bytes)
-    for chunk in after_list:
-        _append(chunk)
-    out = BytesIO()
-    writer.write(out)
-    return out.getvalue()
 
 def replace_image(tpl, dummy_pic, imgb64):
     if not imgb64:

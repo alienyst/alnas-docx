@@ -68,11 +68,12 @@ class IrActionsReport(models.Model):
             "linked_attachments": lambda record: misc_tools.linked_attachments_for_record(
                 self.env, record
             ),
+            "add_pdf": (
+                misc_tools.add_pdf_factory(extra_pdfs["before"], extra_pdfs["after"])
+                if extra_pdfs is not None
+                else (lambda *args, **kwargs: "")
+            ),
         }
-        if extra_pdfs is not None:
-            context["add_pdf"] = misc_tools.add_pdf_factory(
-                extra_pdfs["before"], extra_pdfs["after"]
-            )
         return context
     
     def _render_docx(self, report_ref, docids, data):

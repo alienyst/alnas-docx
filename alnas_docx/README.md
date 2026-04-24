@@ -39,6 +39,7 @@ To call and write the field name, use the following format: `{{docs.field_name}}
 - `{{replace_embedded('file_name_in_word', docs.binary_field)}}`: It works like medias replacement, except it is for embedded objects like embedded docx.
 - `{{replace_zipname('file_path_in_word', docs.binary_field)}}`: replace_embedded() may not work on other documents than embedded docx. Instead, you should use zipname replacement.
 - `linked_attachments(docs)`: Returns binary attachments linked to the record (`ir.attachment` with `res_model` / `res_id` matching `docs`). Use in a loop to merge each file, e.g. `{% for att in linked_attachments(docs) %}{{ p add_subdoc(att.datas) }}{% endfor %}`.
+- `{{ add_pdf(docs.pdf_attachment) }}`: PDF mode only. Queue an extra PDF to merge with the report output (after the main document by default). Use `position='before'` or `position='after'` to control order. The source can be a single `ir.attachment` record, raw PDF bytes, or base64-encoded PDF data. Optional `label` helps identify the file in validation errors. The call returns an empty string; merging happens when the final PDF is built.
 
 Note: The functions will be updated as needed.
 
@@ -58,6 +59,8 @@ If you want to use the "pdf" option, ensure that LibreOffice is installed. Then 
 
 - **Linux**: `/usr/bin/libreoffice`
 - **Windows**: `C:\Program Files\LibreOffice\program\soffice.exe`
+
+In PDF mode, the template also exposes `add_pdf` so you can merge additional PDF files with the PDF produced from your DOCX (for example cover pages or terms appended after the report). The main report PDF sits between any PDFs added with `position='before'` and those with `position='after'` (or the default). Only valid PDF data is accepted; add one PDF per call.
 
 ## Credits
 

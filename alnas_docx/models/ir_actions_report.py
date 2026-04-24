@@ -46,7 +46,7 @@ class IrActionsReport(models.Model):
             ):
                 raise ValidationError(_("Please upload a DOCX template."))
 
-    def _get_rendering_context_docx(self, doc_template):
+    def _get_rendering_context_docx(self, doc_template, extra_pdfs=None):
         context = {
             "company": self.env.company,
             "lang": self._context.get("lang", "id_ID"),
@@ -68,6 +68,11 @@ class IrActionsReport(models.Model):
             "linked_attachments": lambda record: misc_tools.linked_attachments_for_record(
                 self.env, record
             ),
+            "add_pdf": (
+                misc_tools.add_pdf_factory(extra_pdfs["before"], extra_pdfs["after"])
+                if extra_pdfs is not None
+                else (lambda *args, **kwargs: "")
+            ),
         }
         return context
     
@@ -79,8 +84,17 @@ class IrActionsReport(models.Model):
             raise MissingError("No DOCX template found.")
 
         doc_template = DocxTemplate(BytesIO(base64.b64decode(template)))
-        doc_obj = self.env[report.model].browse(docids)
-        context = self._get_rendering_context_docx(doc_template=doc_template)
+        doc_obj = self.env[report.model].browse(docids).with_context(
+            bin_size=False
+        )
+        extra_pdfs = (
+            {"before": [], "after": []}
+            if report.docx_merge_mode == "pdf"
+            else None
+        )
+        context = self._get_rendering_context_docx(
+            doc_template=doc_template, extra_pdfs=extra_pdfs
+        )
         autoescape = report.docx_autoescape
         
         if report.docx_merge_mode == "composer":
@@ -95,7 +109,9 @@ class IrActionsReport(models.Model):
                 autoescape=autoescape,
             )
         else:
-            return self._render_docx_to_pdf_mode(doc_template, doc_obj, data, context, autoescape=autoescape)
+            return self._render_docx_to_pdf_mode(
+                doc_template, doc_obj, data, context, extra_pdfs, autoescape=autoescape
+            )
 
     def _render_composer_mode(self, doc_template, doc_obj, data, context, autoescape=False):
         for idx, obj in enumerate(doc_obj):
@@ -156,8 +172,12 @@ class IrActionsReport(models.Model):
 
         return zip_buffer.read(), 'zip'
 
-    def _render_docx_to_pdf_mode(self, doc_template, doc_obj, data, context, autoescape=False):
-        docx_file, _ = self._render_composer_mode(doc_template, doc_obj, data, context, autoescape=autoescape)
+    def _render_docx_to_pdf_mode(
+        self, doc_template, doc_obj, data, context, extra_pdfs, autoescape=False
+    ):
+        docx_file, _ = self._render_composer_mode(
+            doc_template, doc_obj, data, context, autoescape=autoescape
+        )
         temp_dir = tempfile.mkdtemp()
         os.makedirs(temp_dir, exist_ok=True)
 
@@ -172,12 +192,17 @@ class IrActionsReport(models.Model):
                 raise UserError('PDF conversion failed.')
 
             with open(pdf_file_path, 'rb') as pdf_file:
-                pdf_bytes = BytesIO(pdf_file.read())
+                main_pdf = pdf_file.read()
 
         finally:
             shutil.rmtree(temp_dir)
 
-        return pdf_bytes.read(), 'pdf'
+        if extra_pdfs and (extra_pdfs["before"] or extra_pdfs["after"]):
+            main_pdf = misc_tools.merge_pdf_bytes(
+                main_pdf, extra_pdfs["before"], extra_pdfs["after"]
+            )
+
+        return main_pdf, 'pdf'
 
     def convert_file_to_pdf(self, file_path, output_dir):
         librepath = self._get_libreoffice_path()

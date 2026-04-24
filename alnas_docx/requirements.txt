@@ -3,4 +3,3 @@ docxtpl
 docxcompose
 htmldocx
 beautifulsoup4
-pypdf

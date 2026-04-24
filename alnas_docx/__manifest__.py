@@ -45,7 +45,7 @@
     'license': 'LGPL-3',
     
     'external_dependencies': {
-        'python': ['docxtpl', 'docxcompose', 'htmldocx', 'pypdf'],
+        'python': ['docxtpl', 'docxcompose', 'htmldocx'],
     }
     
 }

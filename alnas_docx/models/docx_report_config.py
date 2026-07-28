@@ -89,6 +89,17 @@ class DocxReportConfig(models.Model):
         help="Enable autoescape for special character like <, > and &.",
     )
 
+    def init(self):
+        records = self.search([
+            ("print_report_name_override", "=", False),
+            "|",
+            ("print_report_name", "=", False),
+            ("print_report_name", "=", ""),
+        ])
+        if records:
+            records._compute_print_report_name()
+            self.flush_model(["print_report_name"])
+
     @api.depends("model_id", "field_id", "prefix", "print_report_name_override")
     def _compute_print_report_name(self):
         for rec in self:

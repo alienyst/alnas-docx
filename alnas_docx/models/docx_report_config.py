@@ -71,17 +71,12 @@ class DocxReportConfig(models.Model):
             if 'Zip' is selected, the report will be generated as a ZIP file containing multiple DOCX files, \n \
             if 'PDF' is selected, the report will be converted to PDF file.",
     )
-
     print_report_name = fields.Char(
         string="Print Report Name",
         compute="_compute_print_report_name",
         store=True,
+        readonly=False,  # Allows manual override
         help="Filename generated for the report",
-    )
-    print_report_name_override = fields.Boolean(
-        string="Override Print Report Name",
-        default=False,
-        help="This lets you manually edit the report name. Old and new python string formatting is supported. Use with caution!",
     )
     autoescape = fields.Boolean(
         string="Autoescape",
@@ -89,11 +84,9 @@ class DocxReportConfig(models.Model):
         help="Enable autoescape for special character like <, > and &.",
     )
 
-    @api.depends("model_id", "field_id", "prefix", "print_report_name_override")
+    @api.depends("model_id", "field_id", "prefix")
     def _compute_print_report_name(self):
         for rec in self:
-            if rec.print_report_name_override:
-                continue
             if rec.prefix:
                 rec.print_report_name = f"'{rec.prefix} %s' % object.{rec.field_id.name} if object.{rec.field_id.name} else ''"
             else:

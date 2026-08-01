@@ -62,7 +62,7 @@ class IrActionsReport(models.Model):
             "formatabs": misc_tools.format_abs,
             "rich_text": misc_tools.rich_text,
             "render_image": partial(misc_tools.render_image, doc_template),
-            "render_qrcode": partial(misc_tools.render_qrcode, doc_template),
+            "render_qrcode": partial(misc_tools.render_qrcode, self.env, doc_template),
             "render_barcode": partial(misc_tools.render_barcode, self.env, doc_template),
             "html2docx": partial(misc_tools.render_html_as_subdoc, doc_template),
             "add_subdoc": partial(misc_tools.add_new_subdoc, doc_template),

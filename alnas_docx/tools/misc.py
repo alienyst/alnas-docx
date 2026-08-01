@@ -4,7 +4,6 @@ from zoneinfo import ZoneInfo
 
 from babel.dates import format_date, format_datetime
 from babel.numbers import format_currency
-from bs4 import BeautifulSoup
 from docx import Document
 from docx.shared import Mm
 from docxtpl import InlineImage, RichText
@@ -12,6 +11,7 @@ from htmldocx import HtmlToDocx
 from num2words import num2words
 from odoo import _
 from odoo.exceptions import UserError
+from odoo.tools import is_html_empty
 from odoo.tools.pdf import PdfReader, merge_pdf
 from pytz import timezone
 
@@ -29,10 +29,7 @@ def render_image(tpl, imgb64, width=None, height=None):
 
 
 def render_html_as_subdoc(tpl, html_code=None):
-    if not (
-        isinstance(html_code, str)
-        and bool(BeautifulSoup(html_code, "html.parser").find())
-    ):
+    if not isinstance(html_code, str) or is_html_empty(html_code):
         return ""
 
     temp = BytesIO()
@@ -253,25 +250,12 @@ def format_selection(record, field_name):
     except Exception:
         return record[field_name] or ""
 
-def render_qrcode(tpl, value, width=15, height=15):
-    """Generate a QR code and return it as an InlineImage."""
-    if not isinstance(value, str) or not value:
-        return ""
-    qr_img = BytesIO()
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
-        box_size=10,
-        border=4,
-    )
-    qr.add_data(value)
-    qr.make(fit=True)
-    qr.make_image().save(qr_img, format="PNG")
-    qr_img.seek(0)
-    return InlineImage(tpl, qr_img, width=Mm(width), height=Mm(height))
+def render_qrcode(env, tpl, value, width=15, height=15):
+    """Generate a QR code using Odoo's native barcode generator."""
+    return render_barcode(env, tpl, str(value), barcode_type="QR", width=width, height=height)
 
 def render_barcode(env, tpl, value, barcode_type="Code128", width=None, height=None, **kwargs):
-    """Generate a barcode using Odoo's native barcode generator."""
+    """Generate a barcode/QR code using Odoo's native barcode generator."""
     if not isinstance(value, str) or not value:
         return ""
     try:
@@ -280,7 +264,7 @@ def render_barcode(env, tpl, value, barcode_type="Code128", width=None, height=N
         h = Mm(height) if height else None
         return InlineImage(tpl, BytesIO(bar_bytes), width=w, height=h)
     except Exception as e:
-        _logger.warning("Failed to generate barcode: %s", str(e))
+        _logger.warning("Failed to generate %s: %s", barcode_type, str(e))
         return ""
 
 

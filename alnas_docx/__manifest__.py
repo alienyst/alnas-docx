@@ -6,14 +6,16 @@
         Simple module to generate report with DOCX template
     """,
     "author": "Ali Ns",
+    "maintainers": ["salvorapi", "joachimnasution", "jankkm"],
     "website": "https://github.com/alienyst",
     "images": ["static/description/banner.png"],
     "category": "Technical",
     "version": "18.0.1.1.0",
     "application": True,
     "installable": True,
-    "depends": ["base", "mail"],
+    "depends": ["base", "mail", "web"],
     "data": [
+        "security/security.xml",
         "security/ir.model.access.csv",
         "data/ir_config_data.xml",
         "views/docx_report_config_view.xml",
@@ -26,6 +28,6 @@
     },
     "license": "LGPL-3",
     "external_dependencies": {
-        "python": ["docxcompose", "docxtpl", "htmldocx"],
+        "python": ["docxtpl", "docxcompose", "htmldocx"],
     },
 }

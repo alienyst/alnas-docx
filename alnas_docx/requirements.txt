@@ -1,4 +1,5 @@
 docxcompose
 docxtpl
 htmldocx
-beautifulsoup4
+qrcode
+qrcode

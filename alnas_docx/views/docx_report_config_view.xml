@@ -27,14 +27,15 @@
             </header>
                 <sheet>
                     <group>
-                        <field name="name" />
-                        <field name="model_id" options="{'no_quick_create':True,'no_create_edit':True, 'no_create':True}" />
-                        <field name="field_id" options="{'no_quick_create':True,'no_create_edit':True, 'no_create':True}" />
-                        <field name="prefix" />
+                        <field name="name"/>
+                        <field name="report_name" attrs="{'readonly': [('state', '!=', 'draft')]}" placeholder="report.code.example"/>
+                        <field name="model_id" options="{'no_quick_create':True,'no_create_edit':True, 'no_create':True}"/>
+                        <field name="field_id" options="{'no_quick_create':True,'no_create_edit':True, 'no_create':True}"/>
+                        <field name="prefix"/>
                         <field name="report_docx_template" filename="report_docx_template_filename"/>
                         <field name="report_docx_template_filename" invisible="1"/>
                         <field name="docx_merge_mode"/>
-                        <field name="print_report_name"/>
+                        <field name="print_report_name" attrs="{'readonly': [('state', '!=', 'draft')]}" placeholder="f'Report {object.display_name}'" required="1"/>
                         <field name="autoescape"/>
                     </group>
                 </sheet>

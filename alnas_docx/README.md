@@ -10,6 +10,11 @@ Before installing this module, make sure to install the following libraries:
 
 - `pip install docxcompose docxtpl htmldocx`
 
+
+
+### Security Note
+For security reasons, creating or editing DOCX Report Configurations is restricted to the **Report Editor** group (System Administrators by default). Regular users can only print published reports.
+
 ## Usage
 
 For usage instructions, you can refer to the following video: [Link](https://www.youtube.com/watch?v=dZvak8yiD5Q)  
@@ -23,20 +28,44 @@ Documentation on writing syntax in the document: [Link](https://docxtpl.readthed
 
 To call and write the field name, use the following format: `{{docs.field_name}}`, starting with the word "docs".
 
-### Useful Functions
+### Available Functions & Variables
 
-- `{{spelled_out(docs.numeric_field)}}`: Spell out numbers
-- `{{formatdate(docs.date_field)}}`: Format dates
-- `{{parsehtml(docs.html_field)}}` : Render HTML content as plain text
-- `{{p html2docx(docs.html_field)}}`: Render HTML as subdocument
-- `{{convert_currency(docs.monetary_field, docs.currency_id)}}`: Show monetary field
-- `{{render_image(docs.image_field)}}` or `{{render_image(docs.image_field, width=10, height=10)}}`: Render Image in Mm.
-- `{{r rich_text(docs.text_field)}}`: Show Rich Text
-- `{{p add_subdoc(docs.docx_binary_field)}}`: Add Subdocument
-- `{{replace_image('file_name_in_word', docs.image_field)}}`: Replace the dummy picture in word document with another one
-- `{{replace_media('file_name_in_word', docs.image_field)}}`: Unlike replace_pic() method, dummy_header_pic.jpg MUST exist in the template directory when rendering and saving the generated docx.
-- `{{replace_embedded('file_name_in_word', docs.binary_field)}}`: It works like medias replacement, except it is for embedded objects like embedded docx.
-- `{{replace_zipname('file_path_in_word', docs.binary_field)}}`: replace_embedded() may not work on other documents than embedded docx. Instead, you should use zipname replacement.
+Because this module inherits Odoo's native mail rendering context, you have full access to Odoo's built-in formatting functions along with powerful DOCX manipulation tools.
+
+#### 1. Odoo Native Formatting (Inherited)
+- `{{ format_amount(docs.amount_total, docs.currency_id) }}`: Format currency automatically based on the user's language and currency symbol.
+- `{{ format_datetime(docs.datetime_field) }}`: Format datetime fields with the correct timezone of the current user.
+- `{{ format_date(docs.date_field) }}`: Format a date field according to the user's language.
+- `{{ format_time(docs.datetime_field) }}`: Format only the time from a datetime field.
+- `{{ format_duration(docs.duration_float) }}`: Format a float duration into HH:MM (e.g., `1.5` becomes `01:30`).
+
+#### 2. Environment & Python Globals (Inherited)
+- `{{ user.name }}` / `{{ user.email }}`: Access the current user's profile who is printing the report.
+- `{{ ctx }}`: Access the current environment context (e.g., `ctx.get('lang')`).
+- `{{ is_html_empty(docs.html_field) }}`: Return `True` if the HTML field is completely empty (safely ignoring empty tags like `<p><br></p>`).
+- `{{ datetime.datetime.now() }}`: Python's native datetime module.
+- `{{ formatdate(docs.date_field + relativedelta(months=1)) }}`: Python's relativedelta for easy date math.
+- `{{ slug(object) }}`: Generate a URL-friendly slug from a record.
+- Standard Python functions: `len()`, `abs()`, `min()`, `max()`, `sum()`, `round()`, `hasattr()`, `quote()`, `urlencode()`.
+
+#### 3. Text & Data Conversion (Custom)
+- `{{ spelled_out(docs.numeric_field) }}`: Spell out numbers into words.
+- `{{ html2plaintext(docs.html_field) }}` : Render HTML content as plain text (Strips HTML tags safely).
+- `{ r rich_text(docs.text_field) }`: Show Rich Text directly in DOCX.
+- `{{ format_selection(docs, 'state') }}`: Return the translated label of a selection field (e.g., 'Draft' instead of 'draft').
+- `{{ render_qrcode('https://odoo.com', width=20, height=20) }}`: Generate a QR Code.
+- `{{ render_barcode('12345678', barcode_type='Code128', width=40, height=10) }}`: Generate a Barcode using Odoo's native generator.
+
+#### 4. Document & Image Manipulation (Custom)
+- `{{ render_image(docs.image_field) }}` or `{{ render_image(docs.image_field, width=10, height=10) }}`: Render an image (size in Mm).
+- `{{p html2docx(docs.html_field) }}`: Render HTML as a formatted subdocument.
+- `{{p add_subdoc(docs.docx_binary_field) }}`: Embed another DOCX file as a subdocument.
+- `{{ replace_image('file_name_in_word', docs.image_field) }}`: Replace a dummy picture in the word document.
+- `{{ replace_media('file_name_in_word', docs.image_field) }}`: Replace media (dummy file must exist in the template directory).
+- `{{ replace_embedded('file_name_in_word', docs.binary_field) }}`: Replace embedded objects like an embedded DOCX.
+- `{{ replace_zipname('file_path_in_word', docs.binary_field) }}`: Alternative for replacing embedded files using zipname replacement.
+- `linked_attachments(docs)`: Returns binary attachments linked to the record. Use in a loop: `{% for att in linked_attachments(docs) %}{{ p add_subdoc(att.datas) }}{% endfor %}`.
+- `{{ add_pdf(docs.pdf_attachment) }}`: **PDF mode only.** Queue an extra PDF to merge with the report output. Use `position='before'` or `position='after'`.
 
 Note: The functions will be updated as needed.
 
@@ -56,6 +85,19 @@ If you want to use the "pdf" option, ensure that LibreOffice is installed. Then 
 
 - **Linux**: `/usr/bin/libreoffice`
 - **Windows**: `C:\Program Files\LibreOffice\program\soffice.exe`
+
+In PDF mode, the template also exposes `add_pdf` so you can merge additional PDF files with the PDF produced from your DOCX (for example cover pages or terms appended after the report). The main report PDF sits between any PDFs added with `position='before'` and those with `position='after'` (or the default). Only valid PDF data is accepted; add one PDF per call.
+
+## Contributors
+
+Thank you to the following contributors who have helped develop, fix bugs, and update features for this module:
+
+- [@alienyst](https://github.com/alienyst)
+- [@salvorapi](https://github.com/salvorapi)
+- [@joachimnasution](https://github.com/joachimnasution)
+- [@jankkm](https://github.com/jankkm)
+- [@lpolitanski-tempoconsulting](https://github.com/lpolitanski-tempoconsulting)
+- George
 
 ## Feedback
 

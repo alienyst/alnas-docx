@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 
@@ -91,7 +91,11 @@ class DocxReportConfig(models.Model):
     print_report_name = fields.Char(
         string="Print Report Name",
         compute="_compute_print_report_name",
-        help="Filename generated for the report",
+        store=True,
+        readonly=False,
+        precompute=True,
+        help="Filename expression for the generated report. "
+        "Auto-filled from model/field/prefix; can be overridden manually.",
     )
     autoescape = fields.Boolean(
         string="Autoescape",
@@ -99,6 +103,26 @@ class DocxReportConfig(models.Model):
         help="Enable autoescape for special character like <, > and &.",
         states={"draft": [("readonly", False)]},
     )
+
+    def copy_data(self, default=None):
+        """Keep unique labels and report code when duplicating."""
+        default = dict(default or {})
+        vals_list = super().copy_data(default=default)
+        for record, vals in zip(self, vals_list):
+            if "name" not in default:
+                vals["name"] = _("%s (copy)", record.name)
+            if "report_name" not in default:
+                vals["report_name"] = _("%s (copy)", record.report_name)
+        return vals_list
+
+    @api.onchange("model_id")
+    def _onchange_model_id(self):
+        if not self.model_id:
+            self.field_id = False
+            return
+        if self.field_id and self.field_id.model_id == self.model_id:
+            return
+        self.field_id = self._get_default_field_id(self.model_id)
 
     @api.depends("model_id", "field_id", "prefix")
     def _compute_print_report_name(self):
@@ -127,8 +151,6 @@ class DocxReportConfig(models.Model):
                 action_report.create_action()
                 record.action_report_id = action_report
                 record.state = "published"
-            else:
-                raise UserError("Report already published")
 
         return True
 
@@ -141,8 +163,6 @@ class DocxReportConfig(models.Model):
             if record.state == "published":
                 record.action_report_id.unlink_action()
                 record.state = "draft"
-            else:
-                raise UserError("Report already unpublished")
         return True
 
     def action_unpublish(self):
@@ -175,3 +195,20 @@ class DocxReportConfig(models.Model):
             "type": "ir.actions.client",
             "tag": "reload",
         }
+
+    def _get_default_field_id(self, model_id):
+        """Prefer display_name, then model rec_name, then name."""
+        Field = self.env["ir.model.fields"]
+        if not model_id:
+            return Field
+        domain = [("model_id", "=", model_id.id), ("ttype", "=", "char")]
+        field = Field.search(domain + [("name", "=", "display_name")], limit=1)
+        if field:
+            return field
+        if model_id.model in self.env:
+            rec_name = self.env[model_id.model]._rec_name
+            if rec_name:
+                field = Field.search(domain + [("name", "=", rec_name)], limit=1)
+                if field:
+                    return field
+        return Field.search(domain + [("name", "=", "name")], limit=1)

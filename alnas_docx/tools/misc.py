@@ -1,3 +1,4 @@
+import logging
 from base64 import b64decode
 from io import BytesIO
 from zoneinfo import ZoneInfo
@@ -14,6 +15,8 @@ from odoo.exceptions import UserError
 from odoo.tools import is_html_empty
 from odoo.tools.pdf import PdfReader, merge_pdf
 from pytz import timezone
+
+_logger = logging.getLogger(__name__)
 
 
 # Partial Function
@@ -45,12 +48,9 @@ def add_new_subdoc(tpl, docx_file):
     if not docx_file:
         return ""
     try:
-        # Odoo Binary fields are base64 str; callers may also pass raw file bytes.
-        if isinstance(docx_file, str):
-            raw = b64decode(docx_file)
-        else:
-            raw = bytes(docx_file)
-        # skip if not a valid docx file
+        raw = b64decode(docx_file) if isinstance(docx_file, str) else bytes(docx_file)
+        if not raw.startswith(b"PK\x03\x04"):
+            raw = b64decode(raw)
         if not raw.startswith(b"PK\x03\x04"):
             return ""
         return tpl.new_subdoc(BytesIO(raw))

@@ -8,9 +8,13 @@
         <field name="model">docx.report.config</field>
         <field name="arch" type="xml">
             <tree string="DOCX Report Configuration">
-                <field name="name" />
-                <field name="model_id" />
-                <field name="state"/>
+                <header>
+                    <button string="Publish" name="action_publish" type="object" class="oe_highlight btn-primary"/>
+                    <button string="Unpublish" name="action_unpublish" type="object" class="oe_highlight btn-secondary"/>
+                </header>
+                <field name="name"/>
+                <field name="model_id"/>
+                <field name="state" decoration-info="state == 'draft'" decoration-success="state == 'published'"/>
             </tree>
         </field>
     </record>

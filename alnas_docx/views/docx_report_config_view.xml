@@ -28,6 +28,7 @@
                 <sheet>
                     <group>
                         <field name="name"  readonly="state != 'draft'"/>
+                        <field name="report_name" readonly="state != 'draft'" placeholder="report.code.example"/>
                         <field name="model_id" options="{'no_quick_create':True,'no_create_edit':True, 'no_create':True}"  readonly="state != 'draft'"/>
                         <field name="field_id" options="{'no_quick_create':True,'no_create_edit':True, 'no_create':True}"  readonly="state != 'draft'"/>
                         <field name="prefix"  readonly="state != 'draft'"/>

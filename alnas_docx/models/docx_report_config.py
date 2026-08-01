@@ -1,5 +1,3 @@
-import hashlib
-
 from odoo import models, fields, api
 from odoo.exceptions import UserError
 
@@ -9,12 +7,22 @@ class DocxReportConfig(models.Model):
     _description = "DOCX Report Configuration"
 
     _inherit = ["mail.thread", "mail.activity.mixin"]
+    
+    _sql_constraints = [
+        ('report_code_name', 'UNIQUE(report_name)', 'Report code name must be unique!.')
+    ]
 
     name = fields.Char(
         string="Report Name",
         required=True,
         readonly=True,
         help="Name of the report",
+    )
+    report_name = fields.Char(
+        string="Report Code",
+        required=True,
+        help="Report Unique Code use for Technical Purpose",
+        copy=False
     )
     model_id = fields.Many2one(
         "ir.model",
@@ -140,17 +148,11 @@ class DocxReportConfig(models.Model):
             "report_type": "docx",
             "report_docx_template": self.report_docx_template,
             "report_docx_template_name": self.report_docx_template_filename,
-            "report_name": self._prepare_template_name(),
+            "report_name": self.report_name,
             "docx_merge_mode": self.docx_merge_mode,
             'docx_autoescape': self.autoescape,
             "print_report_name": self.print_report_name,
         }
-
-    def _prepare_template_name(self):
-        id_str = str(self.id)
-        hash_object = hashlib.sha256(id_str.encode())
-        hash_hex = hash_object.hexdigest()
-        return f"alnas_docx.{hash_hex}"
 
     @api.ondelete(at_uninstall=False)
     def _unlink_docx_report(self):

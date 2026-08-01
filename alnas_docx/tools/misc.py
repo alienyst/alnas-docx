@@ -1,38 +1,35 @@
-from io import BytesIO
 from base64 import b64decode
-from datetime import date, datetime
+from io import BytesIO
 from zoneinfo import ZoneInfo
 
-from odoo import _
-from odoo.exceptions import UserError
+from babel.dates import format_date, format_datetime
+from babel.numbers import format_currency
 from docx import Document
 from docx.shared import Mm
 from docxtpl import InlineImage, RichText
-from bs4 import BeautifulSoup
-from num2words import num2words
-from babel.dates import format_date
-from babel.numbers import format_currency
 from htmldocx import HtmlToDocx
+from num2words import num2words
+from odoo import _
+from odoo.exceptions import UserError
+from odoo.tools import is_html_empty
 from odoo.tools.pdf import PdfReader, merge_pdf
+from pytz import timezone
+
 
 # Partial Function
 def render_image(tpl, imgb64, width=None, height=None):
     width = Mm(width) if width else None
     height = Mm(height) if height else None
-        
+
     if not imgb64:
-        return ''
+        return ""
 
     image_stream = BytesIO(b64decode(imgb64))
-    return InlineImage(
-        tpl, image_descriptor=image_stream, width=width, height=height
-    )
-    
+    return InlineImage(tpl, image_descriptor=image_stream, width=width, height=height)
+
+
 def render_html_as_subdoc(tpl, html_code=None):
-    if not (
-        isinstance(html_code, str)
-        and bool(BeautifulSoup(html_code, "html.parser").find())
-    ):
+    if not isinstance(html_code, str) or is_html_empty(html_code):
         return ""
 
     temp = BytesIO()
@@ -42,6 +39,7 @@ def render_html_as_subdoc(tpl, html_code=None):
     desc_document.save(temp)
     temp.seek(0)
     return tpl.new_subdoc(temp)
+
 
 def add_new_subdoc(tpl, docx_file):
     if not docx_file:
@@ -58,6 +56,7 @@ def add_new_subdoc(tpl, docx_file):
         return tpl.new_subdoc(BytesIO(raw))
     except Exception:
         return ""
+
 
 def _pdf_bytes_from_source(source, label=None):
     """Return (raw_pdf_bytes, error_label) or None to skip (empty / falsy)."""
@@ -103,6 +102,7 @@ def _pdf_bytes_from_source(source, label=None):
         % {"typ": type(source).__name__}
     )
 
+
 def linked_attachments_for_record(env, record):
     """Attachments linked to ``record`` via ``res_model`` / ``res_id`` (binary only)."""
     if not record or not record.ids:
@@ -119,6 +119,7 @@ def linked_attachments_for_record(env, record):
         ],
         order="id",
     )
+
 
 def _coerce_pdf_bytes(data):
     """Return raw PDF bytes: decode when the buffer is still base64 text (e.g. ``JVBERi...``)."""
@@ -141,12 +142,14 @@ def _coerce_pdf_bytes(data):
         return decoded
     return chunk
 
+
 def _make_pdf_reader(data):
     stream = BytesIO(data)
     try:
         return PdfReader(stream, strict=False, root_object_recovery_limit=None)
     except TypeError:
         return PdfReader(stream, strict=False)
+
 
 def _validate_pdf_bytes(data, label):
     """Validate and return coerced PDF bytes for storage and merging."""
@@ -168,6 +171,7 @@ def _validate_pdf_bytes(data, label):
             reader.close()
     return data
 
+
 def add_pdf_factory(before_list, after_list):
     """Side-effect helpers for PDF output mode only (merge after main report PDF)."""
 
@@ -176,9 +180,7 @@ def add_pdf_factory(before_list, after_list):
         if got is None:
             return ""
         data, err_label = got
-        data = _coerce_pdf_bytes(data)
-        if not data or not data.lstrip().startswith(b"%PDF"):
-            return ""
+
         data = _validate_pdf_bytes(data, err_label)
         pos = (position or "after").lower()
         if pos not in ("before", "after"):
@@ -194,6 +196,7 @@ def add_pdf_factory(before_list, after_list):
 
     return add_pdf
 
+
 def merge_pdf_bytes(main_pdf_bytes, before_list, after_list):
     """Concatenate PDFs: before_list + main + after_list."""
     if not before_list and not after_list:
@@ -206,74 +209,100 @@ def merge_pdf_bytes(main_pdf_bytes, before_list, after_list):
 
 def replace_image(tpl, dummy_pic, imgb64):
     if not imgb64:
-        return ''
+        return ""
 
     tpl.replace_pic(dummy_pic, BytesIO(b64decode(imgb64)))
-    return ''
+    return ""
+
 
 def replace_media(tpl, dummy_pic, imgb64):
     if not imgb64:
-        return ''
+        return ""
 
     tpl.replace_media(dummy_pic, BytesIO(b64decode(imgb64)))
-    return ''
+    return ""
+
 
 def replace_embedded(tpl, dummy_embeed, file_b64):
     if not file_b64:
-        return ''
+        return ""
 
     tpl.replace_embedded(dummy_embeed, BytesIO(b64decode(file_b64)))
-    return ''
+    return ""
+
 
 def replace_zipname(tpl, embedded_object_path, file_b64):
     if not file_b64:
-        return ''
+        return ""
 
     tpl.replace_zipname(embedded_object_path, BytesIO(b64decode(file_b64)))
-    return ''
+    return ""
+
+def format_selection(record, field_name):
+    """Return the translated label of a selection field for the given record."""
+    if not record or not field_name or field_name not in record._fields:
+        return ""
+    try:
+        field_info = record.fields_get([field_name]).get(field_name, {})
+        selection = dict(field_info.get("selection", []))
+        value = record[field_name]
+        return selection.get(value, value or "")
+    except Exception:
+        return record[field_name] or ""
+
+def render_qrcode(env, tpl, value, width=15, height=15):
+    """Generate a QR code using Odoo's native barcode generator."""
+    return render_barcode(env, tpl, str(value), barcode_type="QR", width=width, height=height)
+
+def render_barcode(env, tpl, value, barcode_type="Code128", width=None, height=None, **kwargs):
+    """Generate a barcode/QR code using Odoo's native barcode generator."""
+    if not isinstance(value, str) or not value:
+        return ""
+    try:
+        bar_bytes = env['ir.actions.report'].barcode(barcode_type, value, **kwargs)
+        w = Mm(width) if width else None
+        h = Mm(height) if height else None
+        return InlineImage(tpl, BytesIO(bar_bytes), width=w, height=h)
+    except Exception as e:
+        _logger.warning("Failed to generate %s: %s", barcode_type, str(e))
+        return ""
+
 
 # Formatting Function
-def parse_html(html):
-    if not html:
+def formatdate(date_required=None, format="full", lang="id_ID", **kwargs):
+    if not date_required:
         return ""
-    soup = BeautifulSoup(html, "html.parser")
-    return soup.get_text()
-
-def formatdate(date_required=datetime.today(), format="full", lang="id_ID", **kwargs):
     return format_date(date_required, format=format, locale=lang, **kwargs)
 
-def format_datetime(dt, tz=None, format="%Y-%m-%d %H:%M:%S", **kwargs):
+
+def formatdatetime(
+    dt, user_tz="UTC", format="dd/MM/yyyy HH:mm", lang="id_ID", **kwargs
+):
     if not dt:
         return ""
-    if tz is None:
-        tz_target = ZoneInfo("UTC")
-    elif isinstance(tz, ZoneInfo):
-        tz_target = tz
-    else:
-        try:
-            tz_target = ZoneInfo(str(tz))
-        except Exception:
-            tz_target = ZoneInfo("UTC")
-    if isinstance(dt, date) and not isinstance(dt, datetime):
-        return dt.strftime(format)
-    if isinstance(dt, datetime):
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=ZoneInfo("UTC"))
-        local_dt = dt.astimezone(tz_target)
-        return local_dt.strftime(format)
-    return str(dt)
+    return format_datetime(
+        dt,
+        format=format,
+        tzinfo=timezone(user_tz),
+        locale=lang,
+        **kwargs,
+    )
+
 
 def spelled_out(number, lang="id_ID", to="cardinal", **kwargs):
     return num2words(number, lang=lang, to=to, **kwargs)
 
-def convert_currency(number, currency_field, locale='id_ID', **kwargs):
+
+def convert_currency(number, currency_field, locale="id_ID", **kwargs):
     return format_currency(number, currency_field.name, locale=locale, **kwargs)
+
 
 def format_abs(number):
     return abs(number)
 
+
 def rich_text(text, **kwargs):
     if not text:
         return ""
-    
+
     return RichText(text, **kwargs)

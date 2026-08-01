@@ -13,7 +13,7 @@
     "version": "18.0.1.1.0",
     "application": True,
     "installable": True,
-    "depends": ["base", "mail", "web"],
+    "depends": ["mail"],
     "data": [
         "security/security.xml",
         "security/ir.model.access.csv",

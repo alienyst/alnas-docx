@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 
@@ -33,6 +33,11 @@ class DocxReportConfig(models.Model):
         ondelete="cascade",
         readonly=True,
         help="Model to which this report will be attached",
+    )
+    model_name = fields.Char(
+        related="model_id.model",
+        string="Model Name",
+        readonly=True,
     )
     field_id = fields.Many2one(
         "ir.model.fields",
@@ -85,13 +90,41 @@ class DocxReportConfig(models.Model):
     print_report_name = fields.Char(
         string="Print Report Name",
         compute="_compute_print_report_name",
-        help="Filename generated for the report",
+        store=True,
+        readonly=False,
+        precompute=True,
+        help="Filename expression for the generated report. "
+        "Auto-filled from model/field/prefix; can be overridden manually.",
     )
     autoescape = fields.Boolean(
         string="Autoescape",
         default=False,
         help="Enable autoescape for special character like <, > and &.",
     )
+    domain = fields.Char(
+        string="Filter Domain",
+        help="If set, the report action will only appear on records that match this domain.",
+    )
+
+    def copy_data(self, default=None):
+        """Keep unique labels and report code when duplicating."""
+        default = dict(default or {})
+        vals_list = super().copy_data(default=default)
+        for record, vals in zip(self, vals_list):
+            if "name" not in default:
+                vals["name"] = _("%s (copy)", record.name)
+            if "report_name" not in default:
+                vals["report_name"] = _("%s (copy)", record.report_name)
+        return vals_list
+
+    @api.onchange("model_id")
+    def _onchange_model_id(self):
+        if not self.model_id:
+            self.field_id = False
+            return
+        if self.field_id and self.field_id.model_id == self.model_id:
+            return
+        self.field_id = self._get_default_field_id(self.model_id)
 
     @api.depends("model_id", "field_id", "prefix")
     def _compute_print_report_name(self):
@@ -151,8 +184,9 @@ class DocxReportConfig(models.Model):
             "report_docx_template_name": self.report_docx_template_filename,
             "report_name": self.report_name,
             "docx_merge_mode": self.docx_merge_mode,
-            'docx_autoescape': self.autoescape,
+            "docx_autoescape": self.autoescape,
             "print_report_name": self.print_report_name,
+            "domain": self.domain or False,
         }
 
     @api.ondelete(at_uninstall=False)
@@ -168,3 +202,20 @@ class DocxReportConfig(models.Model):
             "type": "ir.actions.client",
             "tag": "reload",
         }
+
+    def _get_default_field_id(self, model_id):
+        """Prefer display_name, then model rec_name, then name."""
+        Field = self.env["ir.model.fields"]
+        if not model_id:
+            return Field
+        domain = [("model_id", "=", model_id.id), ("ttype", "=", "char")]
+        field = Field.search(domain + [("name", "=", "display_name")], limit=1)
+        if field:
+            return field
+        if model_id.model in self.env:
+            rec_name = self.env[model_id.model]._rec_name
+            if rec_name:
+                field = Field.search(domain + [("name", "=", rec_name)], limit=1)
+                if field:
+                    return field
+        return Field.search(domain + [("name", "=", "name")], limit=1)

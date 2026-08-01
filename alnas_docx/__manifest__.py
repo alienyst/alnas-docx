@@ -10,7 +10,7 @@
     "website": "https://github.com/alienyst",
     "images": ["static/description/banner.png"],
     "category": "Technical",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.2.0",
     "application": True,
     "installable": True,
     "depends": ["mail"],

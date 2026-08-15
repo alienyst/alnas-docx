@@ -101,6 +101,20 @@ class DocxReportConfig(models.Model):
         default=False,
         help="Enable autoescape for special character like <, > and &.",
     )
+    preview_record_id = fields.Reference(
+        string="Example Record (BETA)",
+        selection="_selection_preview_model",
+        store=False,
+        help="Select a record to render an inline DOCX preview. Browser rendering may differ slightly from native Microsoft Word.",
+    )
+
+    @api.model
+    def _selection_preview_model(self):
+        return [
+            (model.model, model.name)
+            for model in self.env["ir.model"].search([])
+        ]
+
     domain = fields.Char(
         string="Filter Domain",
         help="If set, the report action will only appear on records that match this domain.",
@@ -119,6 +133,7 @@ class DocxReportConfig(models.Model):
 
     @api.onchange("model_id")
     def _onchange_model_id(self):
+        self.preview_record_id = False
         if not self.model_id:
             self.field_id = False
             return
@@ -196,6 +211,19 @@ class DocxReportConfig(models.Model):
                 rec.action_unpublish()
             if rec.action_report_id:
                 rec.action_report_id.unlink()
+
+    def _render_preview_docx(self, record_id):
+        self.ensure_one()
+        record = self.env[self.model_id.model].browse(record_id).exists()
+        if not record:
+            raise UserError(_("The example record no longer exists."))
+        record.check_access("read")
+
+        report = self.env["ir.actions.report"].new(self._prepare_action_val())
+        content, _file_format = report._render_docx_records(
+            [record.id], data={}, merge_mode="composer"
+        )
+        return content
 
     def _refresh_page(self):
         return {

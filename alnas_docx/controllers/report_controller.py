@@ -15,6 +15,37 @@ from odoo.addons.web.controllers.report import ReportController
 
 
 class DocxReportController(ReportController):
+    @route(
+        "/docx-preview/<int:config_id>/<int:record_id>",
+        type="http",
+        auth="user",
+        methods=["GET"],
+    )
+    def docx_preview(self, config_id, record_id):
+        config = request.env["docx.report.config"].browse(config_id).exists()
+        if not config:
+            return request.not_found()
+        config.check_access("read")
+        try:
+            content = config._render_preview_docx(record_id)
+            return request.make_response(
+                content,
+                headers=[
+                    (
+                        "Content-Type",
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    ),
+                    ("Content-Disposition", "inline; filename=preview.docx"),
+                    ("Cache-Control", "no-store"),
+                ],
+            )
+        except Exception as e:
+            return request.make_response(
+                str(e),
+                status=400,
+                headers=[("Content-Type", "text/plain")],
+            )
+
     @route()
     def report_routes(self, reportname, docids=None, converter=None, **data):
         if converter == "docx":

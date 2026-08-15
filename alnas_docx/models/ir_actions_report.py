@@ -83,40 +83,48 @@ class IrActionsReport(models.Model):
     
     def _render_docx(self, report_ref, docids, data):
         report = self._get_report(report_ref)
-        template = report.report_docx_template
+        return report._render_docx_records(docids, data)
 
-        if not template:
+    def _render_docx_records(self, docids, data=None, merge_mode=None):
+        self.ensure_one()
+        if not self.report_docx_template:
             raise MissingError("No DOCX template found.")
 
-        doc_template = DocxTemplate(BytesIO(base64.b64decode(template)))
-        doc_obj = self.env[report.model].browse(docids).with_context(
-            bin_size=False
+        doc_template = DocxTemplate(
+            BytesIO(base64.b64decode(self.report_docx_template))
         )
-        extra_pdfs = (
-            {"before": [], "after": []}
-            if report.docx_merge_mode == "pdf"
-            else None
-        )
+        doc_obj = self.env[self.model].browse(docids).with_context(bin_size=False)
+        mode = merge_mode or self.docx_merge_mode
+        extra_pdfs = {"before": [], "after": []} if mode == "pdf" else None
         context = self._get_rendering_context_docx(
             doc_template=doc_template, extra_pdfs=extra_pdfs
         )
-        autoescape = report.docx_autoescape
-        
-        if report.docx_merge_mode == "composer":
-            return self._render_composer_mode(doc_template, doc_obj, data, context, autoescape=autoescape)
-        elif report.docx_merge_mode == "zip":
+
+        if mode == "composer":
+            return self._render_composer_mode(
+                doc_template,
+                doc_obj,
+                data or {},
+                context,
+                autoescape=self.docx_autoescape,
+            )
+        if mode == "zip":
             return self._render_zip_mode(
                 doc_template,
                 doc_obj,
-                data,
+                data or {},
                 context,
-                report_name=report.print_report_name,
-                autoescape=autoescape,
+                report_name=self.print_report_name,
+                autoescape=self.docx_autoescape,
             )
-        else:
-            return self._render_docx_to_pdf_mode(
-                doc_template, doc_obj, data, context, extra_pdfs, autoescape=autoescape
-            )
+        return self._render_docx_to_pdf_mode(
+            doc_template,
+            doc_obj,
+            data or {},
+            context,
+            extra_pdfs,
+            autoescape=self.docx_autoescape,
+        )
 
     def _render_composer_mode(self, doc_template, doc_obj, data, context, autoescape=False):
         if not doc_obj:

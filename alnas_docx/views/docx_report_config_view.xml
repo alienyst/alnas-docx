@@ -44,6 +44,9 @@
                         <field name="print_report_name" readonly="state != 'draft'"/>
                         <field name="autoescape" readonly="state != 'draft'"/>
                     </group>
+                    <group invisible="not id" string="Template Playground">
+                        <field name="preview_record_id" string="Example Record (BETA)" widget="docx_preview" options="{'model_field': 'model_id', 'no_create': True, 'no_create_edit': True}"/>
+                    </group>
                 </sheet>
                 <chatter/>
             </form>

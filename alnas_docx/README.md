@@ -24,6 +24,10 @@ Example template use for sale order: [Link](https://github.com/alienyst/alnas-do
 
 Documentation on writing syntax in the document: [Link](https://docxtpl.readthedocs.io/en/stable/)
 
+### Template Playground
+
+Open a saved DOCX report configuration and select an **Example Record (BETA)** below **Autoescape**. The non-stored field renders the DOCX automatically in the form with [docx-preview](https://github.com/VolodymyrBaydalka/docxjs). Browser rendering may differ slightly from native Microsoft Word.
+
 ## Field Naming Convention
 
 To call and write the field name, use the following format: `{{docs.field_name}}`, starting with the word "docs".
@@ -51,7 +55,7 @@ Because this module inherits Odoo's native mail rendering context, you have full
 #### 3. Text & Data Conversion (Custom)
 - `{{ spelled_out(docs.numeric_field) }}`: Spell out numbers into words.
 - `{{ html2plaintext(docs.html_field) }}` : Render HTML content as plain text (Strips HTML tags safely).
-- `{ r rich_text(docs.text_field) }`: Show Rich Text directly in DOCX.
+- `{{ r rich_text(docs.text_field) }}`: Show Rich Text directly in DOCX.
 - `{{ format_selection(docs, 'state') }}`: Return the translated label of a selection field (e.g., 'Draft' instead of 'draft').
 - `{{ render_qrcode('https://odoo.com', width=20, height=20) }}`: Generate a QR Code.
 - `{{ render_barcode('12345678', barcode_type='Code128', width=40, height=10) }}`: Generate a Barcode using Odoo's native generator.

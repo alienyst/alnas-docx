@@ -13,7 +13,34 @@ from odoo import _
 from odoo.exceptions import UserError
 from odoo.tools import is_html_empty
 from odoo.tools.pdf import PdfReader, merge_pdf
+from PIL import Image
 from pytz import timezone
+
+
+def _ensure_supported_image(image_bytes):
+    """Ensure image is in a format supported by python-docx."""
+    try:
+        try:
+            from PIL import WebPImagePlugin
+            Image.register_open(WebPImagePlugin.WebPImageFile.format, WebPImagePlugin.WebPImageFile, WebPImagePlugin._accept)
+            Image.register_extension(WebPImagePlugin.WebPImageFile.format, ".webp")
+            Image.register_mime(WebPImagePlugin.WebPImageFile.format, "image/webp")
+        except Exception:
+            pass
+
+        stream = BytesIO(image_bytes)
+        with Image.open(stream) as img:
+            if img.format and img.format.upper() not in ('JPEG', 'PNG', 'GIF', 'BMP', 'TIFF'):
+                out = BytesIO()
+                if img.mode not in ('RGB', 'RGBA'):
+                    img_converted = img.convert('RGBA')
+                else:
+                    img_converted = img
+                img_converted.save(out, format='PNG')
+                return out.getvalue()
+    except Exception:
+        pass
+    return image_bytes
 
 
 # Partial Function
@@ -24,7 +51,9 @@ def render_image(tpl, imgb64, width=None, height=None):
     if not imgb64:
         return ""
 
-    image_stream = BytesIO(b64decode(imgb64))
+    raw_bytes = b64decode(imgb64)
+    processed_bytes = _ensure_supported_image(raw_bytes)
+    image_stream = BytesIO(processed_bytes)
     return InlineImage(tpl, image_descriptor=image_stream, width=width, height=height)
 
 
@@ -211,7 +240,9 @@ def replace_image(tpl, dummy_pic, imgb64):
     if not imgb64:
         return ""
 
-    tpl.replace_pic(dummy_pic, BytesIO(b64decode(imgb64)))
+    raw_bytes = b64decode(imgb64)
+    processed_bytes = _ensure_supported_image(raw_bytes)
+    tpl.replace_pic(dummy_pic, BytesIO(processed_bytes))
     return ""
 
 
@@ -219,7 +250,9 @@ def replace_media(tpl, dummy_pic, imgb64):
     if not imgb64:
         return ""
 
-    tpl.replace_media(dummy_pic, BytesIO(b64decode(imgb64)))
+    raw_bytes = b64decode(imgb64)
+    processed_bytes = _ensure_supported_image(raw_bytes)
+    tpl.replace_media(dummy_pic, BytesIO(processed_bytes))
     return ""
 
 

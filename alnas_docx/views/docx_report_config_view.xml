@@ -34,13 +34,18 @@
                         <field name="name"  readonly="state != 'draft'"/>
                         <field name="report_name" readonly="state != 'draft'" placeholder="report.code.example"/>
                         <field name="model_id" options="{'no_quick_create':True,'no_create_edit':True, 'no_create':True}"  readonly="state != 'draft'"/>
+                        <field name="model_name" invisible="1"/>
                         <field name="field_id" options="{'no_quick_create':True,'no_create_edit':True, 'no_create':True}"  readonly="state != 'draft'"/>
+                        <field name="domain" widget="domain" options="{'model': 'model_name', 'in_dialog': true, 'foldable': true}" readonly="state != 'draft'" placeholder="[]"/>
                         <field name="prefix"  readonly="state != 'draft'"/>
                         <field name="report_docx_template" filename="report_docx_template_filename" readonly="state != 'draft'"/>
                         <field name="report_docx_template_filename" invisible="1" readonly="state != 'draft'"/> <!-- Used as the file name -->
                         <field name="docx_merge_mode" readonly="state != 'draft'"/>
                         <field name="print_report_name" readonly="state != 'draft'"/>
                         <field name="autoescape" readonly="state != 'draft'"/>
+                    </group>
+                    <group invisible="not id" string="Template Playground">
+                        <field name="preview_record_id" string="Example Record (BETA)" widget="docx_preview" options="{'model_field': 'model_id', 'no_create': True, 'no_create_edit': True}"/>
                     </group>
                 </sheet>
                 <chatter/>

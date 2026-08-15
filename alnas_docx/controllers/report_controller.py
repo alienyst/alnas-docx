@@ -15,13 +15,45 @@ from odoo.addons.web.controllers.report import ReportController
 
 
 class DocxReportController(ReportController):
+    @route(
+        "/docx-preview/<int:config_id>/<int:record_id>",
+        type="http",
+        auth="user",
+        methods=["GET"],
+    )
+    def docx_preview(self, config_id, record_id):
+        config = request.env["docx.report.config"].browse(config_id).exists()
+        if not config:
+            return request.not_found()
+        config.check_access_rights("read")
+        config.check_access_rule("read")
+        try:
+            content = config._render_preview_docx(record_id)
+            return request.make_response(
+                content,
+                headers=[
+                    (
+                        "Content-Type",
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    ),
+                    ("Content-Disposition", "inline; filename=preview.docx"),
+                    ("Cache-Control", "no-store"),
+                ],
+            )
+        except Exception as e:
+            return request.make_response(
+                str(e),
+                status=400,
+                headers=[("Content-Type", "text/plain")],
+            )
+
     @route()
     def report_routes(self, reportname, docids=None, converter=None, **data):
         if converter == "docx":
-            
+
             report = request.env["ir.actions.report"]._get_report_from_name(reportname)
             context = dict(request.env.context)
-            
+
             if docids:
                 docids = [int(i) for i in docids.split(",")]
             if data.get("options"):
@@ -29,9 +61,9 @@ class DocxReportController(ReportController):
             if data.get("context"):
                 data["context"] = json.loads(data["context"])
                 context.update(data["context"])
-                
+
             docx_files, format_file = report.with_context(**context)._render_docx(reportname, docids, data=data)
-            
+
             if format_file == 'docx':
                 httpheaders = [
                     ('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
@@ -45,7 +77,7 @@ class DocxReportController(ReportController):
                     ('Content-Type', 'application/pdf'),
                 ]
             return request.make_response(docx_files, headers=httpheaders)
-        
+
         return super().report_routes(reportname, docids, converter, **data)
 
     @route()
@@ -80,9 +112,9 @@ class DocxReportController(ReportController):
                 report = request.env["ir.actions.report"]._get_report_from_name(
                     reportname
                 )
-                
+
                 filename = self._get_filename_by_report_type(report, report.name)
-                    
+
                 if docids:
                     ids = [int(x) for x in docids.split(",")]
                     obj = request.env[report.model].browse(ids)
@@ -102,7 +134,7 @@ class DocxReportController(ReportController):
             se = _serialize_exception(e)
             error = {"code": 200, "message": "Odoo Server Error", "data": se}
             return request.make_response(html_escape(json.dumps(error)))
-        
+
     def _get_filename_by_report_type(self, report, name):
         if report.docx_merge_mode == 'composer':
             filename = "%s.%s" % (name, "docx")
@@ -110,6 +142,5 @@ class DocxReportController(ReportController):
             filename = "%s.%s" % (name, "zip")
         else:
             filename = "%s.%s" % (name, "pdf")
-            
-        return filename
 
+        return filename

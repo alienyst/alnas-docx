@@ -1,5 +1,8 @@
 from base64 import b64encode
+from io import BytesIO
+from zipfile import ZipFile
 
+from docx import Document
 from odoo.tests.common import TransactionCase
 
 
@@ -33,3 +36,31 @@ class TestDocxReportConfig(TransactionCase):
         config._action_publish()
         config._action_unpublish()
         config._action_unpublish()
+
+    def test_preview_renders_example_record(self):
+        template = BytesIO()
+        document = Document()
+        document.add_paragraph("{{ docs.name }}")
+        document.save(template)
+
+        model = self.env["ir.model"]._get("res.partner")
+        field = self.env["ir.model.fields"].search(
+            [("model_id", "=", model.id), ("name", "=", "name")], limit=1
+        )
+        config = self.env["docx.report.config"].create(
+            {
+                "name": "Partner Preview",
+                "report_name": "partner_preview",
+                "model_id": model.id,
+                "field_id": field.id,
+                "report_docx_template": b64encode(template.getvalue()),
+                "report_docx_template_filename": "partner.docx",
+            }
+        )
+        partner = self.env["res.partner"].create({"name": "Preview Partner"})
+        self.assertFalse(config._fields["preview_record_id"].store)
+
+        content = config._render_preview_docx(partner.id)
+
+        with ZipFile(BytesIO(content)) as rendered:
+            self.assertIn(b"Preview Partner", rendered.read("word/document.xml"))

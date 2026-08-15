@@ -10,7 +10,7 @@
     "website": "https://github.com/alienyst",
     "images": ["static/description/banner.png"],
     "category": "Technical",
-    "version": "17.0.1.2.0",
+    "version": "17.0.1.4.0",
     "application": True,
     "installable": True,
     "depends": ["mail"],
@@ -23,8 +23,15 @@
     ],
     "assets": {
         "web.assets_backend": [
-            "alnas_docx/static/src/js/report/action_manager_report.esm.js"
-        ]
+            "alnas_docx/static/src/js/report/action_manager_report.esm.js",
+            "alnas_docx/static/src/js/field/docx_preview.js",
+            "alnas_docx/static/src/xml/docx_preview.xml",
+            "alnas_docx/static/src/scss/docx_preview.scss",
+        ],
+        "alnas_docx.docx_preview": [
+            "alnas_docx/static/vendor/jszip/jszip.min.js",
+            "alnas_docx/static/vendor/docx-preview/docx-preview.min.js",
+        ],
     },
     "license": "LGPL-3",
     "external_dependencies": {

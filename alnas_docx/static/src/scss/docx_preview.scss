@@ -1,0 +1,54 @@
+.o_docx_preview_field {
+    .o_docx_preview_panel {
+        overflow: hidden;
+        border: 1px solid var(--border-color, #dee2e6);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .o_docx_preview_header {
+        background: var(--o-view-background-color, #ffffff);
+        border-bottom: 1px solid var(--border-color, #dee2e6);
+        padding: 0.75rem 1rem;
+    }
+
+    .o_docx_preview_header_icon {
+        color: #714b67;
+        font-size: 1.25rem;
+    }
+
+    .o_docx_preview_badge {
+        background: #f3edf1;
+        color: #714b67;
+        font-weight: 600;
+    }
+
+    .o_docx_preview {
+        max-height: 70vh;
+        overflow: auto;
+        background: #f1f2f3;
+        padding: 1.25rem;
+    }
+
+    .o_docx_preview_status {
+        color: #6c757d;
+        min-height: 12rem;
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+
+    .o_docx_preview_document {
+        display: flex;
+        justify-content: center;
+        min-height: 12rem;
+
+        .docx-wrapper {
+            background: transparent;
+            padding: 0.5rem 0;
+        }
+
+        .docx-wrapper > section.docx {
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+        }
+    }
+}

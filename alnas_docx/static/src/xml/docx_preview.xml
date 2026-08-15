@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="alnas_docx.DocxPreviewField">
+        <div class="o_docx_preview_field">
+            <ReferenceField t-props="props"/>
+            <div t-if="props.record.data[props.name]" class="o_docx_preview_panel card mt-3">
+                <div class="o_docx_preview_header card-header d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <i class="fa fa-file-word-o o_docx_preview_header_icon me-2"/>
+                        <div>
+                            <div class="fw-bold">Document Preview</div>
+                            <small class="text-muted">Live DOCX rendering</small>
+                            <small class="d-block text-info mt-1">
+                                <i class="fa fa-info-circle me-1"/>Browser rendering may differ slightly from native Microsoft Word.
+                            </small>
+                        </div>
+                    </div>
+                    <span class="badge o_docx_preview_badge">DOCX</span>
+                </div>
+                <div class="o_docx_preview">
+                    <div t-if="previewState.loading" class="o_docx_preview_status">
+                        <i class="fa fa-spinner fa-spin me-2"/>Rendering preview…
+                    </div>
+                    <div t-if="previewState.error" class="alert alert-danger m-3" role="alert">
+                        <t t-esc="previewState.error"/>
+                    </div>
+                    <div t-ref="preview" class="o_docx_preview_document"/>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

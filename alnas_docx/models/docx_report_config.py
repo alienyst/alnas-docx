@@ -1,5 +1,20 @@
+import re
+
 from odoo import models, fields, api
 from odoo.exceptions import UserError
+from odoo.tools.safe_eval import safe_eval, time
+
+
+# Maps a {placeholder} in the file name pattern to a small piece of Python.
+# {field} and {model} are filled in per record when the expression is built.
+NAME_PLACEHOLDERS = {
+    "record_name": "(object.{field} or '')",
+    "model_name": "'{model}'",
+    "year": "(object.create_date and object.create_date.year or '')",
+    "quarter": "(object.create_date and 'Q%d' % ((object.create_date.month - 1) // 3 + 1) or '')",
+    "month": "(object.create_date and '%02d' % object.create_date.month or '')",
+    "day": "(object.create_date and '%02d' % object.create_date.day or '')",
+}
 
 
 class DocxReportConfig(models.Model):
@@ -81,10 +96,21 @@ class DocxReportConfig(models.Model):
             if 'PDF' is selected, the report will be converted to PDF file.",
     )
 
+    name_pattern = fields.Char(
+        string="File Name Pattern",
+        readonly=True,
+        help="Text used to build the report file name. "
+        "Placeholders you can use: {record_name}, {year}, {quarter}, {month}, "
+        "{day}, {model_name}. Example: Contract {record_name} {year}. "
+        "A change here only takes effect after the report has been "
+        "unpublished and published again.",
+    )
     print_report_name = fields.Char(
         string="Print Report Name",
         compute="_compute_print_report_name",
-        help="Filename generated for the report",
+        store=True,
+        help="Python expression used to build the file name. "
+        "Generated from the File Name Pattern.",
     )
     autoescape = fields.Boolean(
         string="Autoescape",
@@ -92,19 +118,62 @@ class DocxReportConfig(models.Model):
         help="Enable autoescape for special character like <, > and &.",
     )
 
-    @api.depends("model_id", "field_id", "prefix")
+    @api.depends("name_pattern", "model_id", "field_id", "prefix")
     def _compute_print_report_name(self):
         for rec in self:
-            if rec.prefix:
-                rec.print_report_name = f"'{rec.prefix} %s' % object.{rec.field_id.name} if object.{rec.field_id.name} else ''"
+            rec.print_report_name = rec._build_name_expression()
+
+    def _build_name_expression(self):
+        """Turn the friendly File Name Pattern into a Python expression string.
+
+        The result is later evaluated with ``object`` (the record) and ``time``
+        in scope, in the report controller and in ``_render_zip_mode``.
+        """
+        self.ensure_one()
+        field_name = self.field_id.name or "id"
+        model_name = self.model_id.name or "Report"
+
+        # No pattern typed: keep the previous behaviour (prefix + record field).
+        pattern = self.name_pattern
+        if not pattern:
+            prefix = self.prefix or model_name
+            pattern = prefix + " {record_name}"
+
+        pieces = []
+        # Split into plain text and {placeholder} tokens, keeping both.
+        for token in re.split(r"(\{[a-z_]+\})", pattern):
+            if not token:
+                continue
+            if token.startswith("{") and token.endswith("}"):
+                key = token[1:-1]
+                snippet = NAME_PLACEHOLDERS.get(key)
+                if snippet is None:
+                    raise UserError("Unknown file name placeholder: %s" % token)
+                snippet = snippet.format(field=field_name, model=model_name)
+                pieces.append("str(%s)" % snippet)
             else:
-                rec.print_report_name = f"'{rec.model_id.name} %s' % object.{rec.field_id.name} if object.{rec.field_id.name} else ''"
+                # Plain text: repr() wraps it safely in quotes so that spaces,
+                # quotes or % signs cannot break the expression.
+                pieces.append(repr(token))
+
+        return " + ".join(pieces) if pieces else "''"
 
     @api.constrains("report_docx_template_filename")
     def _check_report_docx_template_filename(self):
         for rec in self:
             if not rec.report_docx_template_filename.endswith(".docx"):
                 raise UserError("Please upload a DOCX template.")
+
+    @api.constrains("print_report_name", "model_id")
+    def _check_print_report_name(self):
+        for rec in self:
+            if not rec.print_report_name or not rec.model_id:
+                continue
+            try:
+                dummy = rec.env[rec.model_id.model].new({})
+                safe_eval(rec.print_report_name, {"object": dummy, "time": time})
+            except Exception as e:
+                raise UserError("The file name pattern is not valid: %s" % e)
 
     def _action_publish(self):
         for record in self:

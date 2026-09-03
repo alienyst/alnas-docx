@@ -6,9 +6,9 @@ from odoo.tools.safe_eval import safe_eval, time
 
 
 # Maps a {placeholder} in the file name pattern to a small piece of Python.
-# {field} and {model} are filled in per record when the expression is built.
+# {model} is filled in per record when the expression is built.
 NAME_PLACEHOLDERS = {
-    "record_name": "(object.{field} or '')",
+    "record_name": "(object.display_name or '')",
     "model_name": "'{model}'",
     "year": "(object.create_date and object.create_date.year or '')",
     "quarter": "(object.create_date and 'Q%d' % ((object.create_date.month - 1) // 3 + 1) or '')",
@@ -47,15 +47,6 @@ class DocxReportConfig(models.Model):
         ondelete="cascade",
         readonly=True,
         help="Model to which this report will be attached",
-    )
-    field_id = fields.Many2one(
-        "ir.model.fields",
-        string="Field Name",
-        required=True,
-        ondelete="cascade",
-        domain="[('model_id', '=', model_id),('ttype', '=', 'char')]",
-        readonly=True,
-        help="Field to be used as the report name",
     )
     report_docx_template = fields.Binary(
         string="Report DOCX Template",
@@ -118,7 +109,7 @@ class DocxReportConfig(models.Model):
         help="Enable autoescape for special character like <, > and &.",
     )
 
-    @api.depends("name_pattern", "model_id", "field_id", "prefix")
+    @api.depends("name_pattern", "model_id", "prefix")
     def _compute_print_report_name(self):
         for rec in self:
             rec.print_report_name = rec._build_name_expression()
@@ -130,7 +121,6 @@ class DocxReportConfig(models.Model):
         in scope, in the report controller and in ``_render_zip_mode``.
         """
         self.ensure_one()
-        field_name = self.field_id.name or "id"
         model_name = self.model_id.name or "Report"
 
         # No pattern typed: keep the previous behaviour (prefix + record field).
@@ -149,7 +139,7 @@ class DocxReportConfig(models.Model):
                 snippet = NAME_PLACEHOLDERS.get(key)
                 if snippet is None:
                     raise UserError("Unknown file name placeholder: %s" % token)
-                snippet = snippet.format(field=field_name, model=model_name)
+                snippet = snippet.format(model=model_name)
                 pieces.append("str(%s)" % snippet)
             else:
                 # Plain text: repr() wraps it safely in quotes so that spaces,
